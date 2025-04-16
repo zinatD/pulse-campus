@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha384-tViUnnbYAV00FLIhhi3v/dWt3Jxw4gZQcNoSCxCIFNJVCx7/D55/wXsrNIRANwdD" crossorigin="anonymous">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Dashboard</title>
+     
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css">
+   
+     <style>
+        :root {
+          --primary-color: #2e7d32;
+          --primary-light: #81c784;
+          --primary-lighter: #e8f5e9;
+          --accent-color: #ffb74d;
+        }
+        
+        body {
+          background-color: #f5f5f5;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .app-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: white;
+          border-radius: 20px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+          margin-top: 20px;
+          margin-bottom: 20px;
+        }
+        
+        .header {
+          margin-bottom: 30px;
+          position: relative;
+        }
+        
+        .header h1 {
+          color: var(--primary-color);
+          font-weight: 700;
+          margin-bottom: 10px;
+        }
+        
+        .header p {
+          color: #666;
+          font-size: 1.1rem;
+        }
+        
+        .nav-tabs {
+          border-bottom: 2px solid var(--primary-lighter);
+        }
+        
+        .nav-tabs .nav-link {
+          color: #666;
+          border: none;
+          padding: 12px 20px;
+          font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link.active {
+          color: var(--primary-color);
+          background-color: transparent;
+          border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .nav-tabs .nav-link:hover {
+          color: var(--primary-color);
+          border-color: transparent;
+        }
+        
+        .material-section {
+          padding: 20px 0;
+        }
+        
+        .material-card {
+          border: none;
+          border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          transition: all 0.3s ease;
+          margin-bottom: 15px;
+        }
+        
+        .material-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .material-icon {
+          font-size: 1.5rem;
+          color: var(--primary-color);
+          margin-right: 15px;
+        }
+        
+        .material-title {
+          color: #333;
+          font-weight: 500;
+          margin-bottom: 5px;
+        }
+        
+        .material-meta {
+          color: #666;
+          font-size: 0.85rem;
+        }
+        
+        .upload-area {
+          border: 2px dashed #ddd;
+          border-radius: 10px;
+          padding: 30px;
+          text-align: center;
+          margin-bottom: 20px;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+          border-color: var(--primary-light);
+          background-color: var(--primary-lighter);
+        }
+        
+        .upload-icon {
+          font-size: 2rem;
+          color: var(--primary-light);
+          margin-bottom: 10px;
+        }
+        
+        .btn-upload {
+          background-color: var(--primary-color);
+          color: white;
+          border: none;
+          border-radius: 50px;
+          padding: 8px 20px;
+          font-weight: 500;
+        }
+        
+        .btn-upload:hover {
+          background-color: #1b5e20;
+          color: white;
+        }
+        
+        .btn-back {
+          color: var(--primary-color);
+          font-weight: 500;
+          margin-bottom: 20px;
+          display: inline-block;
+        }
+        
+        .empty-state {
+          text-align: center;
+          padding: 40px 20px;
+          color: #666;
+        }
+        
+        .empty-state i {
+          font-size: 3rem;
+          color: var(--primary-light);
+          margin-bottom: 20px;
+        }
+  #pdfViewerContainer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 1000;
+    overflow: auto;
+    padding: 20px;
+  }
+  
+  #pdfToolbar {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 1001;
+    display: flex;
+    gap: 10px;
+  }
+  
+  #pdfCloseBtn {
+    margin-left: auto;
+  }
+  
+  #pdfCanvas {
+    border: 1px solid #ddd;
+    margin: 20px auto;
+    display: block;
+  }
+  
+  .highlight {
+    background-color: yellow;
+    opacity: 0.5;
+  }
+
+      </style>
+
+    
+    <script src="https://kit.fontawesome.com/ae360af17e.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="wrapper" >
+       
+        <aside id="sidebar" class="js-sidebar">
+            <!-- Content For Sidebar -->
+            <div class="h-100">
+                <div class="sidebar-logo">
+                    <a href="#"><i class="bi bi-command" style="color:white; margin-right:5px;"></i>Pulse Camp</a>
+                </div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-header">
+                       pages
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/dashboard.html" class="sidebar-link">
+                            <i class="bi bi-sliders2-vertical" style="margin-right:5px;"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link " 
+                            aria-expanded="false"><i class="bi bi-textarea-t" style="margin-right:5px;"></i>GPA tracker
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link" 
+                            aria-expanded="false"><i class="bi bi-person-gear" style="margin-right:5px;"></i>Study Room
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link " 
+                            aria-expanded="false"><i class="bi bi-textarea-resize" style="margin-right:5px;"></i>My Courses
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">
+                            <i class="bi bi-card-text" style="margin-right:5px;"></i>Scheduler
+                        </a>
+                    </li>
+
+                
+                </ul>
+            </div>
+        </aside>
+    
+
+        <div class="main ">
+            
+            <nav class="navbar navbar-expand px-3">
+                <button class="btn" id="sidebar-toggle" type="button" style="color:#002E79;">
+                    <i class="bi bi-text-left" style="font-size: 1.5rem;"></i> 
+                </button>
+                
+                <div class="navbar-collapse navbar">
+                    <ul class="navbar-nav">
+                
+                        <li class="nav-item me-3">
+                            <a href="#" class="nav-icon pe-md-0">
+                                <i class="bi bi-bell" style="font-size: 1.2rem; color: #255c4c; margin-right:5px;"></i>
+                                <span class="badge bg-danger" id="notification-count"></span>
+                            </a>
+                        </li>
+                        
+                        
+                        <li class="nav-item me-3 dropdown">
+                            <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
+                                <i class="bi bi-person-circle" style="font-size: 1.2rem; color: #255c4c;margin-right:5px;"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end ">
+                                <a href="#" class="dropdown-item" style="font-size:0.5rem; font-weight:400;">Profil</a>
+                                <a href="#" class="dropdown-item">Settings</a>
+                                <a href="/front/signin.html" class="dropdown-item">Log Out</a>
+                            </div>
+                            
+                        </li>
+                    
+                    </ul>
+                </div>
+            </nav>
+        
+            <main class="content px-3 py-2">
+                <!-- Search Section -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex align-items-center pt-2">
+                        <!-- Search Icon that expands into an input field -->
+                        <div class="box">
+                            <input type="text" placeholder="Search..." id="search-input">
+                            <a href="#"> <i class="bi bi-search search-icon" style="color:#fff;"></i></a>
+                        </div>
+                        
+                    </div>
+                    <!-- Other Elements for the Symposium Page -->
+                    <div class="d-flex gap-3">
+                        
+                      
+                    
+                        
+                    </div>
+                    
+                </div>
+            
+                <!-- Main Content for the Symposium (Add your content here) -->
+                <section class="shadow">
+                    <!-- You can add sections like article lists, symposium details, etc. -->
+                    <div class="app-container">
+                        <a href="courses.html" class="btn-back">
+                          <i class="fas fa-arrow-left me-2"></i>Back to Courses
+                        </a>
+                        
+                        <div class="header">
+                          <h1 id="courseTitle">Course Materials</h1>
+                          <p id="courseSchedule"></p>
+                        </div>
+                        
+                        <ul class="nav nav-tabs" id="materialsTab" role="tablist">
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab">
+                              <i class="fas fa-sticky-note me-1"></i> Notes
+                            </button>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pdfs-tab" data-bs-toggle="tab" data-bs-target="#pdfs" type="button" role="tab">
+                              <i class="fas fa-file-pdf me-1"></i> PDFs
+                            </button>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="images-tab" data-bs-toggle="tab" data-bs-target="#images" type="button" role="tab">
+                              <i class="fas fa-image me-1"></i> Images
+                            </button>
+                          </li>
+                        </ul>
+                        
+                        <div class="tab-content" id="materialsTabContent">
+                          <!-- Notes Tab -->
+                          <div class="tab-pane fade show active" id="notes" role="tabpanel">
+                            <div class="material-section">
+                              <div class="upload-area" id="notesUploadArea">
+                                <div class="upload-icon">
+                                  <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <h5>Add New Note</h5>
+                                <p>Click to upload or drag & drop</p>
+                                <input type="file" id="notesUpload" accept=".txt,.doc,.docx,.md" style="display: none;">
+                              </div>
+                              
+                              <div id="notesContainer">
+                                <div class="empty-state">
+                                  <i class="fas fa-sticky-note"></i>
+                                  <h4>No notes yet</h4>
+                                  <p>Upload your first note to get started</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- PDFs Tab -->
+                          <div class="tab-pane fade" id="pdfs" role="tabpanel">
+                            <div class="material-section">
+                              <div class="upload-area" id="pdfsUploadArea">
+                                <div class="upload-icon">
+                                  <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <h5>Add New PDF</h5>
+                                <p>Click to upload or drag & drop</p>
+                                <input type="file" id="pdfsUpload" accept=".pdf" style="display: none;">
+                              </div>
+                              
+                              <div id="pdfsContainer">
+                                <div class="empty-state">
+                                  <i class="fas fa-file-pdf"></i>
+                                  <h4>No PDFs yet</h4>
+                                  <p>Upload your first PDF to get started</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- Images Tab -->
+                          <div class="tab-pane fade" id="images" role="tabpanel">
+                            <div class="material-section">
+                              <div class="upload-area" id="imagesUploadArea">
+                                <div class="upload-icon">
+                                  <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <h5>Add New Image</h5>
+                                <p>Click to upload or drag & drop</p>
+                                <input type="file" id="imagesUpload" accept="image/*" style="display: none;">
+                              </div>
+                              
+                              <div id="imagesContainer">
+                                <div class="empty-state">
+                                  <i class="fas fa-image"></i>
+                                  <h4>No images yet</h4>
+                                  <p>Upload your first image to get started</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                <!-- Main Content -->
+            </section>
+        </main>        
+            
+            <footer class="footer ">
+                <div class="container-fluid">
+                    <div class="row text-muted">
+                        <div class="col-6 text-start">
+                            <p class="mb-0">
+                                <a href="#" class="text-muted">
+                                    <strong>@PulseCamp</strong>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <ul class="list-inline">
+                                <li class="list-inline-item">
+                                    <a href="#" class="text-muted">About Us</a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#" class="text-muted">confidentiality</a>
+                                </li>
+                            
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        
+        </div>
+    </div>
+    <!-- PDF Viewer (add before closing body tag) -->
+<div id="pdfViewerContainer">
+    <div id="pdfToolbar">
+      <button id="highlightBtn" class="btn btn-sm btn-warning">Highlight</button>
+      <button id="downloadPdfBtn" class="btn btn-sm btn-success">Download</button>
+      <button id="pdfCloseBtn" class="btn btn-sm btn-danger">Close</button>
+    </div>
+    <canvas id="pdfCanvas"></canvas>
+  </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script >
+        const sidebarToggle = document.querySelector("#sidebar-toggle");
+sidebarToggle.addEventListener("click",function(){
+    document.querySelector("#sidebar").classList.toggle("collapsed");
+});
+
+document.querySelector(".theme-toggle").addEventListener("click",() => {
+    toggleLocalStorage();
+    toggleRootClass();
+});
+
+
+    </script>
+    <!--pour la recherche-->
+    
+    <script>
+    
+    </script>
+    <script>
+        // Handle search input expansion on click
+        const searchToggle = document.getElementById("search-toggle");
+        const searchInputContainer = document.getElementById("search-input-container");
+    
+        searchToggle.addEventListener("click", () => {
+            searchInputContainer.classList.toggle("d-none");
+            document.getElementById("search-input").focus();
+        });
+    </script>
+    <script>
+        // Get course ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('courseId');
+        
+        // DOM Elements
+        const courseTitle = document.getElementById('courseTitle');
+        const courseSchedule = document.getElementById('courseSchedule');
+        const notesContainer = document.getElementById('notesContainer');
+        const pdfsContainer = document.getElementById('pdfsContainer');
+        const imagesContainer = document.getElementById('imagesContainer');
+        
+        // Upload areas
+        const notesUploadArea = document.getElementById('notesUploadArea');
+        const pdfsUploadArea = document.getElementById('pdfsUploadArea');
+        const imagesUploadArea = document.getElementById('imagesUploadArea');
+        
+        // File inputs
+        const notesUpload = document.getElementById('notesUpload');
+        const pdfsUpload = document.getElementById('pdfsUpload');
+        const imagesUpload = document.getElementById('imagesUpload');
+        
+        // Load course data
+        function loadCourseData() {
+          const courses = JSON.parse(localStorage.getItem('courses')) || [];
+          const course = courses.find(c => c.id == courseId);
+          
+          if (course) {
+            courseTitle.textContent = `${course.name} Materials`;
+            if (course.schedule) {
+              courseSchedule.innerHTML = `<i class="far fa-calendar-alt me-1"></i>${course.schedule}`;
+            }
+            
+            // Load materials if they exist
+            if (course.materials && course.materials.length > 0) {
+              renderMaterials(course.materials);
+            }
+          }
+        }
+        
+        // Render materials
+        function renderMaterials(materials) {
+          const notes = materials.filter(m => m.type === 'note');
+          const pdfs = materials.filter(m => m.type === 'pdf');
+          const images = materials.filter(m => m.type === 'image');
+          
+          // Render notes
+          if (notes.length > 0) {
+            notesContainer.innerHTML = '';
+            notes.forEach(note => {
+              notesContainer.appendChild(createMaterialCard(note));
+            });
+          }
+          
+          // Render PDFs
+          if (pdfs.length > 0) {
+            pdfsContainer.innerHTML = '';
+            pdfs.forEach(pdf => {
+              pdfsContainer.appendChild(createMaterialCard(pdf));
+            });
+          }
+          
+          // Render images
+          if (images.length > 0) {
+            imagesContainer.innerHTML = '';
+            images.forEach(image => {
+              imagesContainer.appendChild(createMaterialCard(image));
+            });
+          }
+        }
+        
+        // Create material card
+        function createMaterialCard(material) {
+          const card = document.createElement('div');
+          card.className = 'material-card p-3';
+          
+          let icon = '';
+          if (material.type === 'note') {
+            icon = '<i class="fas fa-sticky-note material-icon"></i>';
+          } else if (material.type === 'pdf') {
+            icon = '<i class="fas fa-file-pdf material-icon"></i>';
+          } else {
+            icon = '<i class="fas fa-image material-icon"></i>';
+          }
+          
+          card.innerHTML = `
+            <div class="d-flex align-items-center">
+              ${icon}
+              <div>
+                <h6 class="material-title">${material.name}</h6>
+                <div class="material-meta">Uploaded on ${new Date(material.date).toLocaleDateString()}</div>
+              </div>
+              <div class="ms-auto">
+                <a href="${material.url}" class="btn btn-sm btn-outline-primary" download>Download</a>
+              </div>
+            </div>
+          `;
+          
+          return card;
+        }
+        
+        // Handle file upload
+        function handleFileUpload(file, type) {
+          return new Promise((resolve) => {
+            // In a real app, you would upload to a server here
+            // For demo, we'll simulate with localStorage
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+              const material = {
+                id: Date.now(),
+                name: file.name,
+                type: type,
+                date: new Date().toISOString(),
+                url: e.target.result,
+                size: file.size
+              };
+              
+              resolve(material);
+            };
+            
+            reader.readAsDataURL(file);
+          });
+        }
+        
+        // Save material to course
+        function saveMaterialToCourse(material) {
+          const courses = JSON.parse(localStorage.getItem('courses')) || [];
+          const courseIndex = courses.findIndex(c => c.id == courseId);
+          
+          if (courseIndex !== -1) {
+            if (!courses[courseIndex].materials) {
+              courses[courseIndex].materials = [];
+            }
+            
+            courses[courseIndex].materials.push(material);
+            localStorage.setItem('courses', JSON.stringify(courses));
+            loadCourseData();
+          }
+        }
+        
+        // Event Listeners
+        notesUploadArea.addEventListener('click', () => notesUpload.click());
+        pdfsUploadArea.addEventListener('click', () => pdfsUpload.click());
+        imagesUploadArea.addEventListener('click', () => imagesUpload.click());
+        
+        notesUpload.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const material = await handleFileUpload(file, 'note');
+            saveMaterialToCourse(material);
+          }
+        });
+        
+        pdfsUpload.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const material = await handleFileUpload(file, 'pdf');
+            saveMaterialToCourse(material);
+          }
+        });
+        
+        imagesUpload.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const material = await handleFileUpload(file, 'image');
+            saveMaterialToCourse(material);
+          }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+          if (courseId) {
+            loadCourseData();
+          } else {
+            // Redirect if no course ID
+            window.location.href = 'courses.html';
+          }
+        });
+        // Add these variables at the top of your script
+let pdfDoc = null;
+let pageNum = 1;
+let pageRendering = false;
+let pageNumPending = null;
+let scale = 1.5;
+let isHighlightMode = false;
+let currentPdfUrl = '';
+
+// Add these functions to your script
+function renderPage(num) {
+  pageRendering = true;
+  pdfDoc.getPage(num).then(function(page) {
+    const viewport = page.getViewport({ scale: scale });
+    const canvas = document.getElementById('pdfCanvas');
+    const context = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport
+    };
+
+    const renderTask = page.render(renderContext);
+    renderTask.promise.then(function() {
+      pageRendering = false;
+      if (pageNumPending !== null) {
+        renderPage(pageNumPending);
+        pageNumPending = null;
+      }
+    });
+  });
+}
+
+function queueRenderPage(num) {
+  if (pageRendering) {
+    pageNumPending = num;
+  } else {
+    renderPage(num);
+  }
+}
+
+function onPrevPage() {
+  if (pageNum <= 1) return;
+  pageNum--;
+  queueRenderPage(pageNum);
+}
+
+function onNextPage() {
+  if (pageNum >= pdfDoc.numPages) return;
+  pageNum++;
+  queueRenderPage(pageNum);
+}
+
+function showPdfViewer(url) {
+  currentPdfUrl = url;
+  document.getElementById('pdfViewerContainer').style.display = 'block';
+  
+  // Initialize PDF.js
+  pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+    pdfDoc = pdfDoc_;
+    renderPage(pageNum);
+  });
+}
+
+function closePdfViewer() {
+  document.getElementById('pdfViewerContainer').style.display = 'none';
+  pdfDoc = null;
+  pageNum = 1;
+}
+
+function setupPdfHighlights() {
+  const canvas = document.getElementById('pdfCanvas');
+  let isDrawing = false;
+  let startX, startY, endX, endY;
+  
+  canvas.addEventListener('mousedown', (e) => {
+    if (!isHighlightMode) return;
+    
+    isDrawing = true;
+    const rect = canvas.getBoundingClientRect();
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+  });
+  
+  canvas.addEventListener('mousemove', (e) => {
+    if (!isDrawing || !isHighlightMode) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    endX = e.clientX - rect.left;
+    endY = e.clientY - rect.top;
+    
+    // Clear previous temporary highlight
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    renderPage(pageNum);
+    
+    // Draw new temporary highlight
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+    ctx.fillRect(startX, startY, endX - startX, endY - startY);
+  });
+  
+  canvas.addEventListener('mouseup', (e) => {
+    if (!isDrawing || !isHighlightMode) return;
+    
+    isDrawing = false;
+    const rect = canvas.getBoundingClientRect();
+    endX = e.clientX - rect.left;
+    endY = e.clientY - rect.top;
+    
+    // Create permanent highlight element
+    const highlight = document.createElement('div');
+    highlight.className = 'highlight';
+    highlight.style.position = 'absolute';
+    highlight.style.left = `${startX}px`;
+    highlight.style.top = `${startY}px`;
+    highlight.style.width = `${endX - startX}px`;
+    highlight.style.height = `${endY - startY}px`;
+    highlight.style.pointerEvents = 'none';
+    
+    canvas.parentNode.appendChild(highlight);
+  });
+}
+
+// Update the createMaterialCard function to include view button
+function createMaterialCard(material) {
+  const card = document.createElement('div');
+  card.className = 'material-card p-3';
+  
+  let icon = '';
+  if (material.type === 'note') {
+    icon = '<i class="fas fa-sticky-note material-icon"></i>';
+  } else if (material.type === 'pdf') {
+    icon = '<i class="fas fa-file-pdf material-icon"></i>';
+  } else {
+    icon = '<i class="fas fa-image material-icon"></i>';
+  }
+  
+  card.innerHTML = `
+    <div class="d-flex align-items-center">
+      ${icon}
+      <div>
+        <h6 class="material-title">${material.name}</h6>
+        <div class="material-meta">Uploaded on ${new Date(material.date).toLocaleDateString()}</div>
+      </div>
+      <div class="ms-auto d-flex gap-2">
+        ${material.type === 'pdf' ? 
+          `<button class="btn btn-sm btn-primary view-pdf-btn" data-url="${material.url}">View</button>` : ''}
+        <a href="${material.url}" class="btn btn-sm btn-outline-primary" download>Download</a>
+      </div>
+    </div>
+  `;
+  
+  return card;
+}
+
+// Add event listeners for PDF viewer
+document.addEventListener('DOMContentLoaded', () => {
+  if (courseId) {
+    loadCourseData();
+    
+    // Add event delegation for view buttons
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('view-pdf-btn')) {
+        showPdfViewer(e.target.dataset.url);
+      }
+    });
+    
+    // PDF viewer controls
+    document.getElementById('pdfCloseBtn').addEventListener('click', closePdfViewer);
+    document.getElementById('highlightBtn').addEventListener('click', () => {
+      isHighlightMode = !isHighlightMode;
+      document.getElementById('highlightBtn').classList.toggle('active', isHighlightMode);
+    });
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = currentPdfUrl;
+      a.download = 'document.pdf';
+      a.click();
+    });
+    
+    setupPdfHighlights();
+  } else {
+    window.location.href = 'courses.html';
+  }
+});
+      </script>
+   
+</body>
+
+</html>
