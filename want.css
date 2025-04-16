@@ -1,0 +1,525 @@
+@import url('https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+    
+*,
+::after,
+::before {
+    box-sizing: border-box;
+}
+
+body {
+    background-image: url('/pics/sr.jpg');
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.875rem;
+    opacity: 1;
+    margin: 0;
+    overflow-y: auto; /* Allow scrolling only if necessary */
+}
+
+
+a {
+    cursor: pointer;
+    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
+}
+
+li {
+    list-style: none;
+}
+
+h4 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.275rem;
+    color: var(--bs-emphasis-color);
+}
+
+/* Layout for admin dashboard skeleton */
+/* CSS for the sidebar*/
+
+.wrapper {
+    align-items: stretch;
+    display: flex;
+    width: 100%;
+    height: 100vh; /* Make sure the wrapper takes the full height of the viewport */
+}
+
+#sidebar {
+    max-width: 264px;
+    min-width: 264px;
+    background-color: #255c4c;
+    transition: all 0.35s ease-in-out;
+    height: 100vh; /* Make the sidebar take full viewport height */
+    overflow-y: auto; /* Allow vertical scrolling */
+}
+
+.sidebar-dropdown .sidebar-item {
+    margin-left: 35px; /* Adjust spacing as needed */
+}
+
+
+
+
+.main {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-width: 0;
+    overflow: auto;
+    transition: all 0.35s ease-in-out;
+    width: 100%;
+
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+}
+
+.main > .content {
+    flex-grow: 1; /* This ensures the content expands and allows scrolling */
+    overflow-y: auto; /* Optional: Allows the content to scroll if necessary */
+}
+
+/* Sidebar Elements Style */
+
+.sidebar-logo {
+    padding: 1.15rem;
+}
+
+.sidebar-logo a {
+    color: #e9ecef;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    list-style: none;
+    margin-bottom: 0;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.sidebar-header {
+    color: #e9ecef;
+    font-size: .75rem;
+    padding: 1.5rem 1.5rem .375rem;
+    padding-bottom: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+a.sidebar-link {
+    padding: .625rem 1.625rem;
+    color: #e9ecef;
+    position: relative;
+    display: block;
+    font-size: 0.875rem;
+}
+
+.sidebar-link[data-bs-toggle="collapse"]::after {
+    border: solid;
+    border-width: 0 .075rem .075rem 0;
+    content: "";
+    display: inline-block;
+    padding: 2px;
+    position: absolute;
+    right: 1.5rem;
+    top: 1.4rem;
+    transform: rotate(-135deg);
+    transition: all .2s ease-out;
+}
+
+.sidebar-link[data-bs-toggle="collapse"].collapsed::after {
+    transform: rotate(45deg);
+    transition: all .2s ease-out;
+}
+
+
+.navbar-expand .navbar-nav {
+    margin-left: auto;
+}
+
+.content {
+    flex: 1;
+    max-width: 100vw;
+    width: 100vw;
+
+}
+
+@media (min-width:768px) {
+    .content {
+        max-width: auto;
+        width: auto;
+    }
+}
+
+/* Sidebar Toggle */
+
+#sidebar.collapsed {
+    margin-left: -264px;
+}
+
+/* Footer and Nav */
+
+@media (max-width:767.98px) {
+
+    .js-sidebar {
+        margin-left: -264px;
+    }
+
+    #sidebar.collapsed {
+        margin-left: 0;
+    }
+
+    .navbar,
+    footer {
+        width: 100vw;
+    
+    }
+}
+.navbar, footer{
+  background-color: #ffff;
+}
+
+#sidebar-toggle {
+    background-color:none; 
+    border: none; 
+}
+#sidebar-toggle:focus,
+#sidebar-toggle:active {
+    outline: none;
+    box-shadow: none;
+}
+
+.dropdown-menu {
+    background-color: #fff;
+    color: #fff;
+}
+
+.dropdown-menu .dropdown-item {
+    color: #04508f; /* Or any color that stands out */
+}
+
+/* Base styling */
+.box {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    background: #255c4c;
+    border-radius: 30px;
+    padding: 10px 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    width: 100%; /* Make the box responsive */
+    max-width: 500px; /* Max width for larger screens */
+    margin: 0 auto; /* Center the box */
+}
+
+.box input {
+    color:#fff;
+    width: 0;
+    outline: none;
+    border: none;
+    font-weight: 500;
+    transition: width 0.5s ease;
+    background: transparent;
+    padding: 5px 10px;
+}
+
+.box input:focus {
+    width: 250px; /* Default expansion width */
+}
+
+.box a .bi {
+    color: #255c4c;
+    font-size: 18px;
+    transition: color 0.3s;
+}
+
+.box input:focus ~ a .bi {
+    color: transparent; /* Hide the icon when the input is focused */
+}
+
+/* Responsive behavior */
+
+
+
+.custom-card {
+    background: #fff;
+    color: #fff;
+    height: 100%;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.custom-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
+}
+.icon-container {
+    width: 70px;
+    height: 70px;
+    background: #eceff1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 10px rgba(113, 121, 129, 0.3);
+}
+.icon-container i {
+    font-size: 2rem;
+    color: #fff;
+}
+
+/* Spacing for text elements */
+.card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.card-text {
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    padding: 10px 20px;
+    font-weight: 500;
+    border-radius: 8px;
+}
+
+.box1 {
+   
+    text-align: center;
+    padding: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 80px;
+    border-radius: 5px;
+    box-shadow: rgba(100, 100, 111, 0.5) 0px 7px 29px 0px;
+}
+
+  .responsive-heading {
+    margin: 0;
+    color: #255c4c;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 768px) {
+    .responsive-heading {
+      font-size: 1.25rem;
+    }
+    .box {
+      margin: 0.5rem;
+      padding: 0.5rem;
+    }
+  }
+  @media (max-width: 768px) {
+    table {
+        display: block;
+        overflow-x: auto; /* Adds horizontal scroll for small screens */
+    }
+
+    th, td {
+        white-space: nowrap; /* Prevents text from wrapping */
+    }
+}
+.btn-custom-cancel {
+    background-color: #2276bb; 
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    font-size: 1rem; 
+    border-radius: 4px;
+}
+.btn-custom-cancel:hover {
+    background-color: #255c4c;  
+    color: white;  
+}
+
+.btn-custom-sent {
+    background-color:#255c4c; 
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    font-size: 1rem; 
+    border-radius: 4px;
+}
+
+.btn-custom-sent:hover {
+    background-color: #255c4c;  
+    color: white;  
+}
+.col-form-label{
+    color:#255c4c;   
+}
+th{
+    font-weight: 400;
+}
+.buton{
+    border: none;
+
+}
+#editor{
+    background-color: #fff;
+}
+.calendar-container {
+    max-width: 600px;
+    margin: auto;
+  }
+  .calendar-weekdays, .calendar-dates {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+  }
+  .calendar-weekdays {
+    font-weight: bold;
+  }
+  .calendar-day {
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ddd;
+    position: relative;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .calendar-day:hover {
+    background-color: #f0f0f0;
+  }
+  .event-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 5px;
+  }
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .nav-btn {
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+}
+/* Add to your style.css */
+.card-hover {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.icon-wrapper {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.bg-primary-light { background-color: rgba(13, 110, 253, 0.1); }
+.bg-success-light { background-color: rgba(25, 135, 84, 0.1); }
+.bg-info-light { background-color: rgba(13, 202, 240, 0.1); }
+.bg-warning-light { background-color: rgba(255, 193, 7, 0.1); }
+.bg-danger-light { background-color: rgba(220, 53, 69, 0.1); }
+
+
+  .study-room-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .hourglass {
+    font-size: 4rem;
+    margin: 1rem 0;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  .timer-display {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+
+  .message {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: #666;
+    min-height: 2rem;
+  }
+
+  .parameters {
+    margin: 1rem 0;
+  }
+
+  .parameters select, .parameters button {
+    padding: 0.5rem 1rem;
+    margin: 0.3rem;
+    border: none;
+    border-radius: 10px;
+    background-color: #fce4ec;
+    font-size: 1rem;
+    color: #444;
+    cursor: pointer;
+  }
+
+  .parameters button:hover, .parameters select:hover {
+    background-color: #f8bbd0;
+  }
+
+  @media (max-width: 500px) {
+    .study-room-container {
+      padding: 1rem;
+    }
+  }
+/*.custom-button{
+    background-color: #2276bb; 
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    font-size: 1rem; 
+    border-radius: 4px;
+}
+.custom-button{
+    background-color: #04508f;  
+    color: white;  
+}
+.custom-btn{
+    background-color:#04508f; 
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    font-size: 1rem; 
+    border-radius: 4px;
+}
+.custom-btn{
+        background-color: #08294e;  
+        color: white; 
+}
+        
