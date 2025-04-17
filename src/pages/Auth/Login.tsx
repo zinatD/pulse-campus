@@ -3,12 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAlert } from '../../contexts/AlertContext';
 import { parseApiError } from '../../utils/errorHandler';
-import { createClient } from '@supabase/supabase-js';
-
-// Create Supabase client for direct role checking
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import supabase from '../../lib/supabaseClient'; // Import shared client
 
 const Login = () => {
   const navigate = useNavigate();

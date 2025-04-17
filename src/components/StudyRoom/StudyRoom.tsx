@@ -88,16 +88,52 @@ const StudyRoom = () => {
 
   useEffect(() => {
     const audio = document.getElementById('ambientSound') as HTMLAudioElement;
-    if (audio) {
-      if (ambientSound && timerState.isRunning && timerState.isStudyTime) {
-        audio.src = ambientSound;
-        audio.loop = true;
-        audio.play().catch(e => console.log("Audio play failed:", e));
+    if (!audio) return;
+    
+    let playPromise: Promise<void> | undefined;
+    
+    if (ambientSound && timerState.isRunning && timerState.isStudyTime) {
+      audio.src = ambientSound;
+      audio.loop = true;
+      
+      // Properly handle the play promise to prevent unhandled promise rejections
+      playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Playback started successfully
+          })
+          .catch(e => {
+            console.log("Audio play failed:", e);
+            // Auto-play was prevented - handle this gracefully
+            // Often happens due to browser policies requiring user interaction
+          });
+      }
+    } else {
+      // Make sure we're not interrupting an ongoing play operation
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+          })
+          .catch(() => {
+            // Ignore errors from the promise
+          });
       } else {
         audio.pause();
         audio.currentTime = 0;
       }
     }
+    
+    // Cleanup function to ensure audio is properly stopped
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.src = '';
+      }
+    };
   }, [ambientSound, timerState.isRunning, timerState.isStudyTime]);
 
   const formatTime = (seconds: number): string => {

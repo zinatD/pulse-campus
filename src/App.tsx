@@ -1,43 +1,108 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import StudyRoom from './components/StudyRoom/StudyRoom';
-import GPATracker from './pages/GPATracker';
-import MyCourses from './pages/MyCourses';
-import Scheduler from './pages/Scheduler';
-import Login from './pages/Auth/Login';
-import Register from './pages/Auth/Register';
-
-import { AuthProvider } from './contexts/AuthContext';
+import { Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext'; // Add useAuth import here
 import { AlertProvider } from './contexts/AlertContext';
-import AlertContainer from './components/common/AlertContainer';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
+import AlertMessage from './components/AlertMessage';
+import ErrorBoundary from './components/ErrorBoundary';
+import LoadingScreen from './components/LoadingScreen';
+import ProtectedRoute from './components/ProtectedRoute';
 
+// Lazy load components for better performance
+const Login = lazy(() => import('./pages/Auth/Login'));
+const Register = lazy(() => import('./pages/Auth/Register'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Scheduler = lazy(() => import('./pages/Scheduler'));
+const MyCourses = lazy(() => import('./pages/MyCourses'));
+const GPATracker = lazy(() => import('./pages/GPATracker'));
+const StudyRoom = lazy(() => import('./components/StudyRoom/StudyRoom'));
+
+// Move PublicRoute outside of App component to avoid the issue with useAuth
 function App() {
   return (
-    <AlertProvider>
-      <AuthProvider>
-        <Router>
-          <AlertContainer />
-          <Routes>
-            {/* Public routes */}
-            <Route element={<ProtectedRoute requireAuth={false} />}>
-              <Route path="/" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-            </Route>
-            
-            {/* Protected routes - require authentication */}
-            <Route element={<ProtectedRoute requireAuth={true} />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/study-room" element={<StudyRoom />} />
-              <Route path="/gpa-tracker" element={<GPATracker />} />
-              <Route path="/my-courses" element={<MyCourses />} />
-              <Route path="/scheduler" element={<Scheduler />} />
-            </Route>
-          </Routes>
-        </Router>
-      </AuthProvider>
-    </AlertProvider>
+    <ErrorBoundary>
+      <AlertProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </AlertProvider>
+    </ErrorBoundary>
   );
 }
+
+// Separate component for routes to access auth context safely
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <AlertMessage />
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          {/* Public routes that cannot be accessed when logged in */}
+          <Route path="/" element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } />
+          
+          <Route path="/register" element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          } />
+          
+          {/* Protected routes that require authentication */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/scheduler" element={
+            <ProtectedRoute>
+              <Scheduler />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/my-courses" element={
+            <ProtectedRoute>
+              <MyCourses />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/gpa-tracker" element={
+            <ProtectedRoute>
+              <GPATracker />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/study-room" element={
+            <ProtectedRoute>
+              <StudyRoom />
+            </ProtectedRoute>
+          } />
+          
+          {/* Catch all route - redirect to dashboard if authenticated, otherwise to login */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+};
+
+// Public route component to prevent authenticated users from accessing auth pages
+// Move this component after the AuthProvider is rendered
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+  
+  // If user is already authenticated, redirect to dashboard
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 export default App;

@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../../lib/supabaseClient'; // Import shared client
 import { useAlert } from '../../contexts/AlertContext';
 import { parseApiError } from '../../utils/errorHandler';
-
-// Create Supabase client for role fetching
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface Role {
   id: number;

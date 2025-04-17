@@ -1,370 +1,430 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { createClient, User } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback } from 'react';
+import supabase from '../lib/supabaseClient';
+import { Session, User } from '@supabase/supabase-js';
 
-// Define types
-interface UserProfile {
+// Define types for our context
+interface Profile {
   id: string;
   username: string;
+  full_name?: string;
+  name?: string;
+  surname?: string;
+  avatar_url?: string;
+  role_id: number;
   email: string;
-  full_name: string | null;
-  name: string | null;
-  surname: string | null;
-  student_id: string | null;
-  avatar_url: string | null;
-  role: 'admin' | 'teacher' | 'student';
 }
 
 interface AuthContextType {
-  user: User | null;
-  profile: UserProfile | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
+  sessionChecked: boolean;
+  user: User | null;
+  profile: Profile | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, username: string, fullName: string, roleId?: number, extraData?: Record<string, any>) => Promise<void>;
   signOut: () => Promise<void>;
-  isAdmin: () => boolean;
-  isTeacher: () => boolean;
-  isStudent: () => boolean;
+  signUp: (
+    email: string,
+    password: string,
+    username: string,
+    fullName: string,
+    roleId: number,
+    extraData?: Record<string, any>
+  ) => Promise<void>;
+  getUserRole: () => 'admin' | 'teacher' | 'student';
   setUserRole: (role: string) => void;
-  getUserRole: () => string | null;
+  refreshProfile: () => Promise<void>;
 }
 
-// Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Create Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Provider component
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Store user role in localStorage for persistence
-  const setUserRole = (role: string) => {
-    console.log("🔑 Setting user role in localStorage:", role);
-    localStorage.setItem('userRole', role);
-    
-    // Force profile update to trigger re-renders that depend on role
-    if (profile) {
-      setProfile({
-        ...profile,
-        role: role as 'admin' | 'teacher' | 'student'
-      });
-    }
-  };
-
-  const getUserRole = () => {
-    const role = localStorage.getItem('userRole');
-    console.log("🔍 Getting user role from localStorage:", role);
-    return role;
-  };
-
-  // Fetch user profile data using a simplified approach
-  const fetchProfile = async (userId: string) => {
-    try {
-      console.log('👤 Fetching profile for user ID:', userId);
-      
-      // First try to get role via RPC function (most reliable)
-      try {
-        const { data: roleData, error: roleError } = await supabase
-          .rpc('get_user_role', { user_id: userId });
-          
-        if (!roleError && roleData) {
-          console.log("✅ Role fetched via RPC:", roleData);
-          setUserRole(roleData);
-        } else {
-          console.error("❌ Error fetching role via RPC:", roleError);
-        }
-      } catch (rpcError) {
-        console.error("❌ RPC call failed:", rpcError);
-      }
-      
-      // Fetch profile from user_roles view instead of profiles table
-      try {
-        const { data: userData, error: userError } = await supabase
-          .from('user_roles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-          
-        if (!userError && userData) {
-          console.log("✅ User role view data:", userData);
-          setUserRole(userData.role_name);
-        } else {
-          console.error("❌ Error fetching from user_roles view:", userError);
-        }
-      } catch (viewError) {
-        console.error("❌ User roles view query failed:", viewError);
-      }
-      
-      // Fetch basic profile info
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, username, email, full_name, name, surname, student_id, avatar_url, role_id')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('❌ Error fetching profile:', error);
-        
-        // Create minimal profile from user metadata
-        if (user) {
-          const storedRole = getUserRole() || 'student';
-          console.log("📝 Creating profile from user metadata with role:", storedRole);
-          
-          setProfile({
-            id: user.id,
-            username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-            email: user.email || '',
-            full_name: user.user_metadata?.full_name || null,
-            name: user.user_metadata?.name || null,
-            surname: user.user_metadata?.surname || null,
-            student_id: user.user_metadata?.student_id || null,
-            avatar_url: null,
-            role: storedRole as 'admin' | 'teacher' | 'student',
-          });
-        }
-        return;
-      }
-      
-      if (data) {
-        // Get role name from localStorage or fallback mechanism
-        const roleFromStorage = getUserRole();
-        const roleName = roleFromStorage || 
-                       (data.role_id === 1 ? 'admin' : 
-                        data.role_id === 2 ? 'teacher' : 'student');
-        
-        console.log("📝 Setting profile with role:", roleName, "from:", 
-                   roleFromStorage ? "localStorage" : "role_id");
-        
-        setProfile({
-          ...data,
-          role: roleName as 'admin' | 'teacher' | 'student',
-        });
-        
-        // Make sure localStorage has the latest role
-        if (!roleFromStorage) {
-          setUserRole(roleName);
-        }
-      }
-    } catch (error) {
-      console.error('❌ Error in fetchProfile:', error);
-    }
-  };
-
-  // Check for session on initial load
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) throw error;
-        
-        if (session?.user) {
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        }
-      } catch (error) {
-        console.error('Auth error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        } else {
-          setUser(null);
-          setProfile(null);
-          localStorage.removeItem('userRole');
-        }
-        setIsLoading(false);
-      }
-    );
-
-    checkSession();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Sign in
-  const signIn = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-      
-      if (data.user) {
-        setUser(data.user);
-        
-        // Attempt to get role directly from auth metadata to avoid recursion
-        const roleId = data.user.user_metadata?.role_id;
-        if (roleId) {
-          const roleName = roleId === 1 ? 'admin' : roleId === 2 ? 'teacher' : 'student';
-          setUserRole(roleName);
-        }
-        
-        await fetchProfile(data.user.id);
-      }
-    } catch (error) {
-      console.error('Sign-in error:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Sign up
-  const signUp = async (email: string, password: string, username: string, fullName: string, roleId: number = 3, extraData: Record<string, any> = {}) => {
-    try {
-      setIsLoading(true);
-      
-      console.log('SignUp called with roleId:', roleId);
-      
-      // First, sign up the user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            username,
-            full_name: fullName,
-            role_id: roleId, // Explicitly pass as number
-            name: extraData.name || '',
-            surname: extraData.surname || '',
-            student_id: extraData.student_id || '',
-          }
-        }
-      });
-
-      if (authError) throw authError;
-      
-      if (!authData.user) {
-        throw new Error('Failed to create user account');
-      }
-
-      // Set role directly in localStorage
-      const roleName = roleId === 1 ? 'admin' : roleId === 2 ? 'teacher' : 'student';
-      setUserRole(roleName);
-      
-      // Create or update profile directly
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert([
-          {
-            id: authData.user.id,
-            email,
-            username,
-            full_name: fullName,
-            role_id: roleId,
-            name: extraData.name || '',
-            surname: extraData.surname || '',
-            student_id: extraData.student_id || '',
-          }
-        ]);
-        
-      if (profileError) {
-        console.error('Error updating profile:', profileError);
-      }
-        
-      setUser(authData.user);
-      
-      // Create profile object directly instead of fetching
-      setProfile({
-        id: authData.user.id,
-        username,
-        email,
-        full_name: fullName,
-        name: extraData.name || null,
-        surname: extraData.surname || null,
-        student_id: extraData.student_id || null,
-        avatar_url: null,
-        role: roleName as 'admin' | 'teacher' | 'student',
-      });
-      
-    } catch (error) {
-      console.error('Sign-up error:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Sign out
-  const signOut = async () => {
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      setUser(null);
-      setProfile(null);
-      localStorage.removeItem('userRole');
-    } catch (error) {
-      console.error('Sign-out error:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Role check functions using local storage as source of truth
-  const isAdmin = () => {
-    const role = getUserRole();
-    const result = role === 'admin';
-    console.log("👑 isAdmin check:", { role, result });
-    return result;
-  };
-  
-  const isTeacher = () => {
-    const role = getUserRole();
-    const result = role === 'teacher' || role === 'admin';
-    console.log("👨‍🏫 isTeacher check:", { role, result });
-    return result;
-  };
-  
-  const isStudent = () => {
-    const hasAuth = !!user;
-    console.log("🧑‍🎓 isStudent check:", { hasAuth, role: getUserRole() });
-    return hasAuth;
-  };
-  
-  const value = {
-    user,
-    profile,
-    isLoading,
-    signIn,
-    signUp,
-    signOut,
-    isAdmin,
-    isTeacher,
-    isStudent,
-    setUserRole,
-    getUserRole,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+};
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [sessionChecked, setSessionChecked] = useState<boolean>(false);
+
+  const initAttempts = useRef(0);
+  const profileFetchedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    const persistedAuth = sessionStorage.getItem('authState');
+
+    if (persistedAuth) {
+      try {
+        const authData = JSON.parse(persistedAuth);
+
+        if (authData.isAuthenticated && authData.user && authData.profile) {
+          console.log('🔄 Restoring auth state from session storage');
+          setIsAuthenticated(true);
+          setUser(authData.user);
+          setProfile(authData.profile);
+        }
+      } catch (e) {
+        console.error('Failed to parse persisted auth state', e);
+        sessionStorage.removeItem('authState');
+      }
+    }
+  }, []);
+
+  const fetchProfile = useCallback(async (userId: string) => {
+    if (profileFetchedRef.current) return;
+
+    try {
+      console.log('👤 Fetching profile for user ID:', userId);
+      profileFetchedRef.current = true;
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 8000)
+      );
+
+      const profilePromise = Promise.race([
+        supabase
+          .from('user_roles')
+          .select('*')
+          .eq('id', userId)
+          .single(),
+        timeoutPromise
+      ]);
+
+      const { data: userData, error: userError } = await profilePromise as any;
+
+      if (userError || !userData) {
+        console.error('Error getting user profile from view:', userError);
+
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (profileError) {
+          throw profileError;
+        }
+
+        setProfile(profileData);
+
+        const roleId = profileData?.role_id || 3;
+        const roleName = roleId === 1 ? 'admin' : roleId === 2 ? 'teacher' : 'student';
+        localStorage.setItem('userRole', roleName);
+
+        sessionStorage.setItem('authState', JSON.stringify({
+          isAuthenticated: true,
+          user,
+          profile: profileData
+        }));
+
+      } else {
+        setProfile(userData);
+        const roleName = userData.role_name || 'student';
+        localStorage.setItem('userRole', roleName);
+
+        sessionStorage.setItem('authState', JSON.stringify({
+          isAuthenticated: true,
+          user,
+          profile: userData
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      profileFetchedRef.current = false;
+
+      if (user && !profile) {
+        const minimalProfile = {
+          id: user.id,
+          email: user.email || '',
+          username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+          role_id: user.user_metadata?.role_id || 3,
+        };
+
+        setProfile(minimalProfile as Profile);
+        const role = localStorage.getItem('userRole') || 'student';
+        localStorage.setItem('userRole', role);
+      }
+    }
+  }, [user, profile]);
+
+  const clearAuthState = useCallback(() => {
+    setUser(null);
+    setProfile(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('userRole');
+    sessionStorage.removeItem('authState');
+    profileFetchedRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+      if (initAttempts.current > 2) {
+        console.error('Too many initialization attempts, stopping to prevent infinite loop');
+        setIsLoading(false);
+        setSessionChecked(true);
+        return;
+      }
+
+      initAttempts.current += 1;
+
+      try {
+        setIsLoading(true);
+        console.log('🔑 Checking auth session...');
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+        );
+
+        const sessionPromise = Promise.race([
+          supabase.auth.getSession(),
+          timeoutPromise
+        ]);
+
+        const { data: { session }, error: sessionError } = await sessionPromise as any;
+
+        if (!isMounted) return;
+
+        if (sessionError) {
+          throw sessionError;
+        }
+
+        if (session) {
+          console.log('✅ Valid session found');
+          setUser(session.user);
+          setIsAuthenticated(true);
+
+          if (!profile || profile.id !== session.user.id) {
+            await fetchProfile(session.user.id);
+          }
+        } else {
+          console.log('❌ No active session');
+          clearAuthState();
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+
+        const authFromStorage = sessionStorage.getItem('authState');
+        if (authFromStorage && !isAuthenticated) {
+          try {
+            const parsed = JSON.parse(authFromStorage);
+            if (parsed.isAuthenticated && parsed.user) {
+              console.log('🔄 Using persisted auth as fallback');
+              setUser(parsed.user);
+              setProfile(parsed.profile);
+              setIsAuthenticated(true);
+            } else {
+              clearAuthState();
+            }
+          } catch {
+            clearAuthState();
+          }
+        } else {
+          clearAuthState();
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+          setSessionChecked(true);
+        }
+      }
+    };
+
+    if (!sessionChecked) {
+      initializeAuth();
+    }
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state change event:', event);
+
+        if (!isMounted) return;
+
+        if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+          profileFetchedRef.current = false;
+          sessionStorage.removeItem('authState');
+        }
+
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+          setUser(session.user);
+          setIsAuthenticated(true);
+          await fetchProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          clearAuthState();
+        }
+
+        setIsLoading(false);
+        setSessionChecked(true);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, [fetchProfile, clearAuthState, isAuthenticated, profile, sessionChecked]);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      setUser(data.user);
+      setIsAuthenticated(true);
+      profileFetchedRef.current = false;
+      await fetchProfile(data.user.id);
+    } catch (error) {
+      console.error('Error signing in:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchProfile]);
+
+  const signOut = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      clearAuthState();
+    } catch (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [clearAuthState]);
+
+  const signUp = useCallback(async (
+    email: string, 
+    password: string, 
+    username: string, 
+    fullName: string, 
+    roleId: number,
+    extraData?: Record<string, any>
+  ) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+            full_name: fullName,
+            role_id: roleId,
+            ...extraData
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data.user) {
+        throw new Error('User creation failed');
+      }
+
+      const profileData = {
+        id: data.user.id,
+        username,
+        full_name: fullName,
+        email: data.user.email,
+        role_id: roleId,
+        ...extraData
+      };
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert(profileData);
+
+      if (profileError) throw profileError;
+
+      setUser(data.user);
+      setProfile(profileData as Profile);
+      setIsAuthenticated(true);
+
+      const roleName = roleId === 1 ? 'admin' : roleId === 2 ? 'teacher' : 'student';
+      localStorage.setItem('userRole', roleName);
+
+    } catch (error) {
+      console.error('Error signing up:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const getUserRole = useCallback((): 'admin' | 'teacher' | 'student' => {
+    const role = localStorage.getItem('userRole');
+    if (role === 'admin' || role === 'teacher' || role === 'student') {
+      return role;
+    }
+    return 'student';
+  }, []);
+
+  const setUserRole = useCallback((role: string) => {
+    if (role === 'admin' || role === 'teacher' || role === 'student') {
+      localStorage.setItem('userRole', role);
+    }
+  }, []);
+
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+
+    profileFetchedRef.current = false;
+    try {
+      await fetchProfile(user.id);
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    }
+  }, [user, fetchProfile]);
+
+  const contextValue = {
+    isAuthenticated,
+    isLoading,
+    sessionChecked,
+    user,
+    profile,
+    signIn,
+    signOut,
+    signUp,
+    getUserRole,
+    setUserRole,
+    refreshProfile
+  };
+
+  useEffect(() => {
+    console.log('Auth state updated:', { 
+      isAuthenticated, 
+      isLoading,
+      sessionChecked,
+      hasUser: !!user,
+      hasProfile: !!profile,
+      role: localStorage.getItem('userRole') || 'none'
+    });
+  }, [isAuthenticated, isLoading, sessionChecked, user, profile]);
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

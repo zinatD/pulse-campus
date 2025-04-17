@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { BsPeople, BsPersonBadge, BsPersonCheck } from 'react-icons/bs';
-
-// Create Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import supabase from '../../../lib/supabaseClient'; // Import shared client
 
 interface UserStats {
   totalUsers: number;
@@ -23,26 +18,55 @@ const UserStatistics = () => {
   });
 
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+    
     const fetchUserStats = async () => {
       try {
-        // Get teacher count (role_id = 2)
-        const { count: teacherCount, error: teacherError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true })
-          .eq('role_id', 2);
-
-        // Get student count (role_id = 3)
-        const { count: studentCount, error: studentError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true })
-          .eq('role_id', 3);
-
-        // Get total count of all users
-        const { count: totalCount, error: totalError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
-
-        if (teacherError || studentError || totalError) throw new Error("Failed to fetch user statistics");
+        // Add timeout for stats fetch
+        const timeoutId = setTimeout(() => {
+          if (isMounted) {
+            controller.abort();
+            console.error("⏱️ Stats fetch timed out");
+            setStats(prev => ({ ...prev, isLoading: false }));
+          }
+        }, 8000);
+        
+        // Using Promise.all to run queries in parallel for better performance
+        const [teacherResult, studentResult, totalResult] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('role_id', 2),
+            
+          supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('role_id', 3),
+            
+          supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+        ]);
+        
+        clearTimeout(timeoutId);
+        
+        if (!isMounted) return;
+        
+        const teacherCount = teacherResult.count;
+        const studentCount = studentResult.count;
+        const totalCount = totalResult.count;
+        
+        const errors = [
+          teacherResult.error, 
+          studentResult.error, 
+          totalResult.error
+        ].filter(Boolean);
+        
+        if (errors.length > 0) {
+          console.error("Failed to fetch user statistics:", errors);
+          return;
+        }
 
         setStats({
           totalUsers: totalCount || 0,
@@ -51,12 +75,19 @@ const UserStatistics = () => {
           isLoading: false,
         });
       } catch (error) {
-        console.error('Error fetching user statistics:', error);
-        setStats(prev => ({ ...prev, isLoading: false }));
+        if (isMounted) {
+          console.error('Error fetching user statistics:', error);
+          setStats(prev => ({ ...prev, isLoading: false }));
+        }
       }
     };
 
     fetchUserStats();
+    
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, []);
 
   if (stats.isLoading) {

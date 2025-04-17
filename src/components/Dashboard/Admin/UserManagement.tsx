@@ -1,12 +1,7 @@
-import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { useState, useEffect, useCallback } from 'react';
 import { BsPencil, BsTrash, BsPlus } from 'react-icons/bs';
 import { useAlert } from '../../../contexts/AlertContext';
-
-// Create Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import supabase from '../../../lib/supabaseClient'; // Import shared client
 
 interface User {
   id: string;
@@ -28,12 +23,18 @@ const UserManagement = () => {
   const { showAlert } = useAlert();
   const usersPerPage = 5;
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPage, searchTerm]);
-
-  const fetchUsers = async () => {
+  // Use useCallback to memoize this function
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true);
+    
+    // Create an abort controller for the request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      setIsLoading(false);
+      showAlert('warning', 'Request timed out. Please try again.');
+    }, 8000);
+    
     try {
       let query = supabase
         .from('profiles')
@@ -60,22 +61,28 @@ const UserManagement = () => {
       query = query.range(from, to);
 
       const { data, error } = await query;
-
+      
+      clearTimeout(timeoutId);
+      
       if (error) throw error;
       
       if (data) {
-        // Fetch role names separately
-        const enrichedUsers = await Promise.all(data.map(async user => {
-          const { data: roleData } = await supabase
-            .from('roles')
-            .select('name')
-            .eq('id', user.role_id)
-            .single();
-            
-          return {
-            ...user,
-            role_name: roleData?.name || 'Unknown'
-          };
+        // Fetch all roles at once and create a map for efficiency
+        const { data: roleData } = await supabase
+          .from('roles')
+          .select('id, name');
+          
+        const roleMap = new Map();
+        if (roleData) {
+          roleData.forEach(role => {
+            roleMap.set(role.id, role.name);
+          });
+        }
+        
+        // Enrich users with role names from the map
+        const enrichedUsers = data.map(user => ({
+          ...user,
+          role_name: roleMap.get(user.role_id) || 'Unknown'
         }));
         
         setUsers(enrichedUsers);
@@ -86,7 +93,13 @@ const UserManagement = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, showAlert, usersPerPage]);
+
+  useEffect(() => {
+    fetchUsers();
+    
+    // No need to specify dependencies as they're included in the fetchUsers callback
+  }, [fetchUsers]);
 
   const handleDeleteUser = async (userId: string) => {
     if (!confirm('Are you sure you want to delete this user?')) return;

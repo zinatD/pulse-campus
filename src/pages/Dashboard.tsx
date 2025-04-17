@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import SearchBox from '../components/SearchBox';
 import { useAuth } from '../contexts/AuthContext';
-import { createClient } from '@supabase/supabase-js';
 import { useAlert } from '../contexts/AlertContext';
+import supabase from '../lib/supabaseClient'; // Use the shared client
 
 // Import components
 import WelcomeCard from '../components/Dashboard/WelcomeCard';
@@ -13,11 +13,6 @@ import StudyChart from '../components/Dashboard/StudyChart';
 import SubjectsChart from '../components/Dashboard/SubjectsChart';
 import QuickNotes from '../components/Dashboard/QuickNotes';
 import UpcomingTasks from '../components/Dashboard/UpcomingTasks';
-
-// Create Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Define User interface
 interface User {
@@ -52,48 +47,20 @@ const Dashboard = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
   
-  // Force re-evaluation of dashboard type when component mounts
-  useEffect(() => {
-    const role = getUserRole();
-    console.log("🏁 Dashboard mounted, checking role:", role);
-    
-    if (role === 'admin') {
-      console.log("👑 Setting dashboard type to admin");
-      setDashboardType('admin');
-    } else if (role === 'teacher') {
-      console.log("👨‍🏫 Setting dashboard type to teacher");
-      setDashboardType('teacher');
-    } else {
-      console.log("🧑‍🎓 Setting dashboard type to student (default)");
-      setDashboardType('student');
-    }
-  }, []);
-  
-  // Also update when profile changes
-  useEffect(() => {
-    const role = getUserRole();
-    console.log("📱 Profile updated, current role:", role);
-    
-    if (role && role !== dashboardType && 
-       (role === 'admin' || role === 'teacher' || role === 'student')) {
-      console.log(`🔄 Updating dashboard from ${dashboardType} to ${role}`);
-      setDashboardType(role as 'admin' | 'teacher' | 'student');
-    }
-  }, [profile]);
-  
-  // Fetch users when on admin dashboard
-  useEffect(() => {
-    if (dashboardType === 'admin') {
-      fetchUsers();
-      fetchUserStats();
-    }
-  }, [dashboardType]);
-  
-  // Function to fetch users from backend
-  const fetchUsers = async () => {
+  // Memoize these functions to avoid dependency array issues
+  const fetchUsers = useCallback(async (isMounted = true) => {
     try {
       console.log("🔍 Fetching users from backend");
       setIsLoadingUsers(true);
+      
+      // Add timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        if (isMounted) {
+          console.error("⏱️ User fetch timed out");
+          setIsLoadingUsers(false);
+          showAlert('error', 'Request timed out. Please try again.');
+        }
+      }, 10000); // 10 second timeout
       
       // Fetch users with role information
       const { data: userData, error: userError } = await supabase
@@ -101,9 +68,14 @@ const Dashboard = () => {
         .select('*')
         .order('role_id');
       
+      clearTimeout(timeout); // Clear timeout on successful response
+      
+      if (!isMounted) return; // Don't update state if component unmounted
+      
       if (userError) {
         console.error("❌ Error fetching users:", userError);
         showAlert('error', 'Failed to load users. See console for details.');
+        setIsLoadingUsers(false);
         return;
       }
       
@@ -120,22 +92,38 @@ const Dashboard = () => {
         setUsers(enrichedUsers);
       }
     } catch (error) {
-      console.error("❌ Exception when fetching users:", error);
-      showAlert('error', 'An unexpected error occurred while loading users');
+      if (isMounted) {
+        console.error("❌ Exception when fetching users:", error);
+        showAlert('error', 'An unexpected error occurred while loading users');
+      }
     } finally {
-      setIsLoadingUsers(false);
+      if (isMounted) {
+        setIsLoadingUsers(false);
+      }
     }
-  };
+  }, [showAlert]);
   
-  // Function to fetch user statistics
-  const fetchUserStats = async () => {
+  // Function to fetch user statistics with similar improvements
+  const fetchUserStats = useCallback(async (isMounted = true) => {
     try {
       console.log("📊 Fetching user statistics");
+      
+      // Add timeout for stats fetch
+      const timeout = setTimeout(() => {
+        if (isMounted) {
+          console.error("⏱️ Stats fetch timed out");
+          showAlert('error', 'Statistics request timed out');
+        }
+      }, 10000);
       
       // Using a single query to get all counts
       const { data, error } = await supabase
         .from('user_roles')
         .select('role_name');
+      
+      clearTimeout(timeout);
+      
+      if (!isMounted) return;
         
       if (error) {
         console.error("❌ Error fetching user stats:", error);
@@ -167,10 +155,70 @@ const Dashboard = () => {
         setUserStats({ total: 0, teachers: 0, students: 0 });
       }
     } catch (error) {
-      console.error("❌ Exception when fetching user stats:", error);
-      showAlert('error', 'An error occurred while retrieving user statistics');
+      if (isMounted) {
+        console.error("❌ Exception when fetching user stats:", error);
+        showAlert('error', 'An error occurred while retrieving user statistics');
+      }
     }
-  };
+  }, [showAlert]);
+  
+  // Get role from cache to avoid constant re-fetching
+  const getCachedRole = useCallback(() => {
+    return localStorage.getItem('userRole') as 'admin' | 'teacher' | 'student' || 'student';
+  }, []);
+  
+  // Add a mount flag to prevent unnecessary operations after unmount
+  const isMountedRef = useRef(true);
+  
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+  
+  // Force re-evaluation of dashboard type when component mounts
+  useEffect(() => {
+    if (!isMountedRef.current) return;
+    
+    const role = getUserRole();
+    console.log("🏁 Dashboard mounted, checking role:", role);
+    
+    if (role === 'admin' || role === 'teacher' || role === 'student') {
+      if (role !== dashboardType) {
+        console.log(`🔄 Setting dashboard type to ${role}`);
+        setDashboardType(role as 'admin' | 'teacher' | 'student');
+      }
+    }
+    
+    // Reset the loading state when the dashboard first loads
+    setIsLoadingUsers(false);
+  }, []); // Run only on mount
+
+  // Also update when profile changes, but with proper dependency handling
+  useEffect(() => {
+    if (!profile) return; // Skip if profile is null or undefined
+    
+    const role = getUserRole();
+    console.log("📱 Profile updated, current role:", role);
+    
+    if (role && role !== dashboardType && 
+       (role === 'admin' || role === 'teacher' || role === 'student')) {
+      console.log(`🔄 Updating dashboard from ${dashboardType} to ${role}`);
+      setDashboardType(role as 'admin' | 'teacher' | 'student');
+    }
+  }, [profile, dashboardType]); // getUserRole uses localStorage so we don't need it as dependency
+  
+  // Fetch users when on admin dashboard
+  useEffect(() => {
+    let isMounted = true; // For cleanup - prevent state updates after unmount
+    
+    if (dashboardType === 'admin') {
+      fetchUsers(isMounted);
+      fetchUserStats(isMounted);
+    }
+    
+    return () => { isMounted = false; }; // Cleanup function
+  }, [dashboardType, fetchUsers, fetchUserStats]);
   
   // Handle user deletion
   const handleDeleteUser = async (userId: string, userName: string) => {
@@ -459,18 +507,27 @@ const Dashboard = () => {
 
   // Main render
   return (
-    <div className="flex h-screen bg-[url('https://images.unsplash.com/photo-1497864149936-d3163f0c0f4b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center bg-fixed">
+    <div className="flex h-screen">
+      {/* Move background to a separate container with optimized CSS */}
+      <div 
+        className="bg-image-wrapper"
+        style={{backgroundImage: "url('https://images.unsplash.com/photo-1497864149936-d3163f0c0f4b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')"}}
+      ></div>
+      
       <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
       
       <div className="flex-1 flex flex-col min-h-screen">
         <Navbar toggleSidebar={toggleSidebar} />
         
         <main className="flex-1 p-6 overflow-y-auto backdrop-blur-sm bg-white/30">
-          <div className="mb-6">
-            <SearchBox />
+          {/* Add a key to force re-render when dashboardType changes */}
+          <div key={`dashboard-${dashboardType}`} className="fade-in">
+            <div className="mb-6">
+              <SearchBox />
+            </div>
+  
+            {renderDashboardContent()}
           </div>
-
-          {renderDashboardContent()}
         </main>
 
         <footer className="bg-white py-4 px-6">
