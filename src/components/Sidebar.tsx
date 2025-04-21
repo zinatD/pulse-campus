@@ -34,7 +34,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }: { isCollapsed: boolean; toggleS
           </li>
           
           <li>
-            <Link to="/my-courses" className="sidebar-link flex items-center gap-2">
+            <Link to="/courses" className="sidebar-link flex items-center gap-2">
               <BsTextareaResize /> My Courses
             </Link>
           </li>

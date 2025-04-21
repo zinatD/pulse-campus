@@ -17,47 +17,51 @@ CREATE POLICY "Users can view their own profile" ON profiles
 CREATE POLICY "Users can update their own profile" ON profiles
   FOR UPDATE USING (id = auth.uid());
 
--- Admin access - use auth.jwt() to check role without recursion
-CREATE POLICY "Admins have full access to profiles" ON profiles
-  USING (
-    -- Use JWT claims directly if available in your setup
-    (auth.jwt() ->> 'role') = 'admin'
-    -- Fallback to a direct role check
-    OR EXISTS (
-      SELECT 1 FROM roles r
-      WHERE auth.uid() IN (
-        SELECT id FROM profiles WHERE role_id = r.id AND r.name = 'admin'
-      )
-    )
+-- Create a helper function to check admin status without recursion
+CREATE OR REPLACE FUNCTION is_admin() RETURNS BOOLEAN AS $$
+BEGIN
+  -- First check JWT claims if available
+  IF auth.jwt() ->> 'role' = 'admin' THEN
+    RETURN TRUE;
+  END IF;
+  
+  -- Then check through a direct join avoiding recursion
+  RETURN EXISTS (
+    SELECT 1 
+    FROM roles r
+    JOIN profiles p ON p.role_id = r.id
+    WHERE p.id = auth.uid() AND r.name = 'admin'
   );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Similarly create a helper function for teachers
+CREATE OR REPLACE FUNCTION is_teacher() RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 
+    FROM roles r
+    JOIN profiles p ON p.role_id = r.id
+    WHERE p.id = auth.uid() AND r.name = 'teacher'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Admin access using the helper function
+CREATE POLICY "Admins have full access to profiles" ON profiles
+  USING (is_admin());
 
 -- Teachers can view student profiles
 CREATE POLICY "Teachers can view student profiles" ON profiles
-  FOR SELECT USING (
-    -- Either this is the user's own profile
-    id = auth.uid() 
-    -- Or the current user is a teacher
-    OR EXISTS (
-      SELECT 1 FROM roles r
-      WHERE auth.uid() IN (
-        SELECT id FROM profiles WHERE role_id = r.id AND r.name = 'teacher'
-      )
-    )
-  );
+  FOR SELECT USING (id = auth.uid() OR is_teacher());
 
 -- Fix the registration_codes policy to prevent recursion
 DROP POLICY IF EXISTS "Admins have full access to registration codes" ON registration_codes;
+DROP POLICY IF EXISTS "Users can view unused registration codes" ON registration_codes;
 
 -- Create a non-recursive policy for registration codes
 CREATE POLICY "Admins have full access to registration codes" ON registration_codes
-  USING (
-    EXISTS (
-      SELECT 1 FROM roles r
-      WHERE auth.uid() IN (
-        SELECT id FROM profiles WHERE role_id = r.id AND r.name = 'admin'
-      )
-    )
-  );
+  USING (is_admin());
 
 -- For security, add a view-only policy for non-admin users
 CREATE POLICY "Users can view unused registration codes" ON registration_codes
