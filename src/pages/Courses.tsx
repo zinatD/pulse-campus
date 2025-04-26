@@ -11,11 +11,10 @@ interface Course {
   id: number;
   name: string;
   description: string | null;
-  instructor_id: string | null;
+  instructor_name: string | null;
+  course_date: string | null;
+  user_id: string;
   created_at: string;
-  updated_at: string;
-  public: boolean;
-  created_by: string | null;
 }
 
 const Courses = () => {
@@ -30,6 +29,8 @@ const Courses = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    instructor_name: '',
+    course_date: ''
   });
 
   const toggleSidebar = () => {
@@ -81,16 +82,15 @@ const Courses = () => {
         throw new Error('User not authenticated');
       }
 
-      // Create course with the simplified permissions model
       const { data, error } = await supabase
         .from('courses')
         .insert([
           {
             name: formData.name,
             description: formData.description,
-            public: true,                // Make it public by default
-            created_by: user.id,         // Set creator directly
-            instructor_id: user.id       // For backward compatibility
+            instructor_name: formData.instructor_name,
+            course_date: formData.course_date,
+            user_id: user.id
           }
         ])
         .select()
@@ -99,7 +99,7 @@ const Courses = () => {
       if (error) throw error;
 
       showAlert('success', 'Course added successfully!');
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', instructor_name: '', course_date: '' });
       setShowModal(false);
       fetchCourses();
     } catch (error: any) {
@@ -146,6 +146,18 @@ const Courses = () => {
                 {courses.map((course) => (
                   <div key={course.id} className="bg-green-50 rounded-lg p-6 hover:shadow-lg transition-all duration-300">
                     <h3 className="text-xl font-semibold text-primary mb-2">{course.name}</h3>
+                    {course.instructor_name && (
+                      <p className="text-gray-600 mb-2">
+                        <i className="fas fa-chalkboard-teacher mr-2"></i>
+                        {course.instructor_name}
+                      </p>
+                    )}
+                    {course.course_date && (
+                      <p className="text-gray-600 mb-2">
+                        <i className="far fa-calendar-alt mr-2"></i>
+                        {course.course_date}
+                      </p>
+                    )}
                     {course.description && (
                       <p className="text-gray-600 mb-4">{course.description}</p>
                     )}
@@ -192,6 +204,33 @@ const Courses = () => {
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
                       required
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-medium mb-2">
+                      Instructor Name
+                    </label>
+                    <input
+                      type="text"
+                      name="instructor_name"
+                      value={formData.instructor_name}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-medium mb-2">
+                      Course Schedule
+                    </label>
+                    <input
+                      type="text"
+                      name="course_date"
+                      value={formData.course_date}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Mon/Wed 10:00 AM"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
 
