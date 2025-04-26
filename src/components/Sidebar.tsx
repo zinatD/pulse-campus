@@ -1,5 +1,5 @@
 import { BiCommand } from 'react-icons/bi';
-import { BsSliders2Vertical, BsTextareaT, BsPersonGear, BsTextareaResize, BsCardText, BsBook } from 'react-icons/bs';
+import { BsSliders2Vertical, BsTextareaT, BsPersonGear, BsTextareaResize, BsCardText, BsBook, BsPeople } from 'react-icons/bs';
 import { Link } from 'react-router-dom';
 
 const Sidebar = ({ isCollapsed, toggleSidebar }: { isCollapsed: boolean; toggleSidebar: () => void }) => {
@@ -48,6 +48,12 @@ const Sidebar = ({ isCollapsed, toggleSidebar }: { isCollapsed: boolean; toggleS
           <li>
             <Link to="/assignments" className="sidebar-link flex items-center gap-2">
               <BsBook /> Assignments
+            </Link>
+          </li>
+
+          <li>
+            <Link to="/study-groups" className="sidebar-link flex items-center gap-2">
+              <BsPeople /> Study Groups
             </Link>
           </li>
         </ul>

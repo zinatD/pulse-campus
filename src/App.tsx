@@ -17,6 +17,7 @@ const Courses = lazy(() => import('./pages/Courses'));
 const GPATracker = lazy(() => import('./pages/GPATracker'));
 const StudyRoom = lazy(() => import('./components/StudyRoom/StudyRoom'));
 const Assignments = lazy(() => import('./pages/Assignments'));
+const StudyGroups = lazy(() => import('./pages/StudyGroups'));
 
 function App() {
   return (
@@ -87,6 +88,12 @@ const AppRoutes = () => {
           <Route path="/assignments" element={
             <ProtectedRoute>
               <Assignments />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/study-groups" element={
+            <ProtectedRoute>
+              <StudyGroups />
             </ProtectedRoute>
           } />
           
