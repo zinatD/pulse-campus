@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Groups</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --pastel-mint: #d4f1e5;
+            --pastel-teal: #b2e0d0;
+            --pastel-sage: #e0e8c5;
+            --pastel-olive: #d8e2b2;
+            --pastel-forest: #c1d7ae;
+            --accent-green: #81c784;
+            --dark-green: #2e7d32;
+            --soft-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            --paper-texture: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="white" opacity="0.8"/><path d="M0 0 L100 100 M100 0 L0 100" stroke="%23b2e0d0" stroke-width="0.5" opacity="0.3"/></svg>');
+        }
+        
+        body {
+            background-color: var(--pastel-mint);
+            font-family: 'Comic Neue', cursive, sans-serif;
+            background-image: var(--paper-texture);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .groups-header {
+            background-color: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--soft-shadow);
+            border: 2px dashed var(--accent-green);
+            text-align: center;
+            background-image: var(--paper-texture);
+        }
+        
+        .groups-title {
+            color: var(--dark-green);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .groups-subtitle {
+            color: var(--accent-green);
+            font-size: 1.1rem;
+        }
+        
+        /* Group Cards */
+        .groups-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .group-card {
+            background-color: white;
+            border-radius: 20px 20px 50px 20px;
+            padding: 25px;
+            box-shadow: var(--soft-shadow);
+            transition: all 0.3s;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            border: none;
+            background-image: var(--paper-texture);
+            transform: rotate(-1deg);
+        }
+        
+        .group-card:nth-child(2n) {
+            transform: rotate(1deg);
+            border-radius: 20px 50px 20px 20px;
+        }
+        
+        .group-card:nth-child(3n) {
+            transform: rotate(-2deg);
+            border-radius: 50px 20px 20px 20px;
+        }
+        
+        .group-card:hover {
+            transform: rotate(0deg) scale(1.05) !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .group-name {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--dark-green);
+            font-weight: bold;
+        }
+        
+        .group-description {
+            color: #555;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .group-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .member-tag {
+            background-color: var(--pastel-mint);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: var(--dark-green);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .member-tag i {
+            margin-right: 5px;
+            color: var(--accent-green);
+        }
+        
+        .group-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .btn-primary-custom {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+            border-radius: 15px;
+            padding: 8px 20px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary-custom:hover {
+            background-color: var(--dark-green);
+            border-color: var(--dark-green);
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline-custom {
+            border: 2px solid var(--accent-green);
+            color: var(--dark-green);
+            border-radius: 15px;
+            padding: 8px 20px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-outline-custom:hover {
+            background-color: var(--pastel-teal);
+            transform: translateY(-2px);
+        }
+        
+        /* No Groups State */
+        .no-groups {
+            text-align: center;
+            padding: 40px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: var(--soft-shadow);
+            grid-column: 1 / -1;
+            background-image: var(--paper-texture);
+        }
+        
+        .no-groups h2 {
+            color: var(--dark-green);
+            margin-bottom: 15px;
+        }
+        
+        .no-groups p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        /* Floating action button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 100;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1) rotate(15deg);
+            background-color: var(--dark-green);
+        }
+        
+        /* Custom font */
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Decorative leaves -->
+        <div class="leaf-decoration leaf-1">🌿</div>
+        <div class="leaf-decoration leaf-2">🍃</div>
+        
+        <!-- Header -->
+        <div class="groups-header">
+            <h1 class="groups-title">Study Groups</h1>
+            <p class="groups-subtitle">Learn together with your friends! 🌱✨</p>
+        </div>
+        
+        <!-- Groups List -->
+        <div class="groups-list" id="groupsList">
+            <!-- Groups will be loaded here -->
+            <div class="no-groups">
+                <h2>No Study Groups Yet</h2>
+                <p>Create your first group to start learning with friends!</p>
+                <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+                    <i class="bi bi-plus-lg"></i> Create Group
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating action button -->
+    <div class="fab" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+        <i class="bi bi-plus-lg"></i>
+    </div>
+    
+    <!-- Create Group Modal -->
+    <div class="modal fade" id="createGroupModal" tabindex="-1" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createGroupModalLabel">
+                        <i class="bi bi-people-fill"></i> Create New Group
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createGroupForm">
+                        <div class="mb-3">
+                            <label for="groupName" class="form-label">Group Name</label>
+                            <input type="text" class="form-control" id="groupName" placeholder="e.g. Biology Buddies" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="groupDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="groupDescription" rows="3" placeholder="What will you study together?"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Invite Friends</label>
+                            <div class="invite-link-box">
+                                <p class="mb-2"><i class="bi bi-link-45deg"></i> Share this invite link:</p>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" id="inviteLink" value="Loading..." readonly>
+                                    <button class="btn btn-outline-secondary" type="button" id="copyLinkBtn">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted"><i class="bi bi-info-circle"></i> Friends will need to sign up first</small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom" id="createGroupBtn">
+                        <i class="bi bi-stars"></i> Create Group
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom JS -->
+    <script>
+        // Sample data - in a real app this would come from your backend/database
+        let groups = JSON.parse(localStorage.getItem('fluffyGroups')) || [
+            {
+                id: "biology-buddies",
+                name: "Biology Buddies",
+                description: "Exploring the wonders of life together! 🧬🌿 Weekly meetups to study biology concepts.",
+                members: ["you", "johndoe", "maryjane"],
+                createdBy: "johndoe",
+                inviteCode: "bio123"
+            },
+            {
+                id: "math-magicians",
+                name: "Math Magicians",
+                description: "Solving problems with magic numbers! ✨🔢 Collaborative problem solving for calculus.",
+                members: ["you", "emilyrose"],
+                createdBy: "emilyrose",
+                inviteCode: "math456"
+            }
+        ];
+        
+        // DOM elements
+        const groupsList = document.getElementById('groupsList');
+        const createGroupBtn = document.getElementById('createGroupBtn');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const inviteLink = document.getElementById('inviteLink');
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderGroups();
+            
+            // Set up event listeners
+            copyLinkBtn.addEventListener('click', copyToClipboard);
+            createGroupBtn.addEventListener('click', createNewGroup);
+        });
+        
+        // Render groups
+        function renderGroups() {
+            if (groups.length === 0) {
+                return; // Keep the "no groups" message
+            }
+            
+            groupsList.innerHTML = '';
+            
+            groups.forEach(group => {
+                const groupCard = document.createElement('div');
+                groupCard.className = 'group-card';
+                groupCard.innerHTML = `
+                    <h3 class="group-name">${group.name}</h3>
+                    <p class="group-description">${group.description}</p>
+                    <div class="group-members">
+                        ${group.members.map(member => `
+                            <span class="member-tag">
+                                <i class="bi bi-person${member === 'you' ? '-check' : ''}"></i>
+                                ${member}
+                            </span>
+                        `).join('')}
+                    </div>
+                    <div class="group-actions">
+                        <a href="chat.html?group=${group.id}" class="btn btn-outline-custom">
+                            <i class="bi bi-door-open"></i> Enter
+                        </a>
+                        <button class="btn btn-primary-custom" onclick="shareGroupLink('${group.id}')">
+                            <i class="bi bi-share"></i> Invite
+                        </button>
+                    </div>
+                `;
+                groupsList.appendChild(groupCard);
+            });
+        }
+        
+        // Generate a random invite code
+        function generateInviteCode() {
+            return Math.random().toString(36).substring(2, 8);
+        }
+        
+        // Create slug from group name
+        function createSlug(name) {
+            return name.toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9-]/g, '');
+        }
+        
+        // Copy to clipboard
+        function copyToClipboard() {
+            navigator.clipboard.writeText(inviteLink.value).then(() => {
+                // Change button to show success
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                this.classList.add('btn-success');
+                this.classList.remove('btn-outline-secondary');
+                
+                // Revert after 2 seconds
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-outline-secondary');
+                }, 2000);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+        
+        // Share group link
+        function shareGroupLink(groupId) {
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+            
+            const shareUrl = `${window.location.origin}/chat.html?group=${groupId}&invite=${group.inviteCode}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `Join ${group.name}`,
+                    text: `I invited you to join my study group: ${group.name}`,
+                    url: shareUrl
+                }).catch(err => {
+                    console.log('Error sharing:', err);
+                    copyToClipboard(shareUrl);
+                });
+            } else {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('Group link copied to clipboard!');
+                });
+            }
+        }
+        
+        // Create new group
+        function createNewGroup() {
+            const groupName = document.getElementById('groupName').value;
+            const groupDescription = document.getElementById('groupDescription').value;
+            
+            if (!groupName) {
+                alert('Please enter a group name!');
+                return;
+            }
+            
+            const newGroup = {
+                id: createSlug(groupName),
+                name: groupName,
+                description: groupDescription,
+                members: ['you'],
+                createdBy: 'you',
+                inviteCode: generateInviteCode()
+            };
+            
+            groups.push(newGroup);
+            localStorage.setItem('fluffyGroups', JSON.stringify(groups));
+            
+            // Update the invite link in the modal
+            inviteLink.value = `${window.location.origin}/chat.html?group=${newGroup.id}&invite=${newGroup.inviteCode}`;
+            
+            renderGroups();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createGroupModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('createGroupForm').reset();
+        }
+    </script>
+</body>
+</html>
