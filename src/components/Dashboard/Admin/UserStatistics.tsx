@@ -22,6 +22,9 @@ const UserStatistics = () => {
     const controller = new AbortController();
     
     const fetchUserStats = async () => {
+      // Prevent fetching if we already have stats
+      if (stats.totalUsers > 0 && !stats.isLoading) return;
+      
       try {
         // Add timeout for stats fetch
         const timeoutId = setTimeout(() => {
@@ -33,6 +36,7 @@ const UserStatistics = () => {
         }, 8000);
         
         // Using Promise.all to run queries in parallel for better performance
+        // Query profiles directly without relation to roles
         const [teacherResult, studentResult, totalResult] = await Promise.all([
           supabase
             .from('profiles')

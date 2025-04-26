@@ -23,7 +23,7 @@ CREATE POLICY "Users can insert own profiles" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Create a direct view to get role information without recursion
-CREATE OR REPLACE VIEW user_roles AS
+CREATE OR REPLACE VIEW roles AS
 SELECT 
   p.id,
   p.email,

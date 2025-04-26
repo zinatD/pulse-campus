@@ -27,65 +27,29 @@ const UserManagement = () => {
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     
-    // Create an abort controller for the request
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-      setIsLoading(false);
-      showAlert('warning', 'Request timed out. Please try again.');
-    }, 8000);
-    
     try {
+      // Use the profiles_with_roles view instead
       let query = supabase
-        .from('profiles')
-        .select(`
-          id,
-          username,
-          email,
-          full_name,
-          name,
-          surname,
-          student_id,
-          role_id
-        `)
-        .order('role_id');
-
-      // Apply search if provided
+        .from('profiles_with_roles')
+        .select('*');
+      
+      // Apply search and pagination
       if (searchTerm) {
         query = query.or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`);
       }
-
-      // Calculate pagination
+      
+      // Calculate pagination range
       const from = (currentPage - 1) * usersPerPage;
       const to = from + usersPerPage - 1;
-      query = query.range(from, to);
-
-      const { data, error } = await query;
       
-      clearTimeout(timeoutId);
+      query = query.order('role_id').range(from, to);
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       
       if (data) {
-        // Fetch all roles at once and create a map for efficiency
-        const { data: roleData } = await supabase
-          .from('roles')
-          .select('id, name');
-          
-        const roleMap = new Map();
-        if (roleData) {
-          roleData.forEach(role => {
-            roleMap.set(role.id, role.name);
-          });
-        }
-        
-        // Enrich users with role names from the map
-        const enrichedUsers = data.map(user => ({
-          ...user,
-          role_name: roleMap.get(user.role_id) || 'Unknown'
-        }));
-        
-        setUsers(enrichedUsers);
+        setUsers(data);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -96,9 +60,8 @@ const UserManagement = () => {
   }, [currentPage, searchTerm, showAlert, usersPerPage]);
 
   useEffect(() => {
+    // Only fetch if we don't have data or if search/pagination changes
     fetchUsers();
-    
-    // No need to specify dependencies as they're included in the fetchUsers callback
   }, [fetchUsers]);
 
   const handleDeleteUser = async (userId: string) => {

@@ -25,38 +25,85 @@ const Login = () => {
   // Function to fetch role directly from the database
   const fetchUserRole = async (userId: string) => {
     try {
-      // Try the direct query first
-      const { data: userData, error: userError } = await supabase
-        .from('user_roles')
-        .select('role_name')
-        .eq('id', userId)
-        .single();
+      console.log('🔍 Fetching role for user:', userId);
       
-      if (userError || !userData) {
-        console.error('Error getting user role from view:', userError);
+      // First try to get role from auth metadata as the most reliable source
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (userData?.user?.user_metadata?.role_id) {
+        const roleId = userData.user.user_metadata.role_id;
+        console.log('✅ Found role_id in auth metadata:', roleId);
         
-        // Fallback to direct query on profiles and roles
+        // Convert role_id to role name
+        const roleName = roleId === 1 ? 'admin' : 
+                         roleId === 2 ? 'teacher' : 'student';
+        console.log('👑 Role from metadata:', roleName);
+        return roleName;
+      }
+      
+      // If metadata approach fails, try database queries
+      try {
+        // First, get the user's profile to find their role_id
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('role_id')
           .eq('id', userId)
           .single();
           
-        if (profileError || !profileData) {
+        if (profileError) {
+          // Check if this is a policy error
+          if (profileError.code === '42P17' || 
+              profileError.message?.includes('policy')) {
+            console.warn('⚠️ Policy error when fetching profile, using alternative approach');
+            throw profileError; // Skip to the catch block
+          }
+          
           console.error('Error getting profile role_id:', profileError);
           return 'student'; // Default fallback
         }
         
-        // Convert role_id to role name
-        return profileData.role_id === 1 ? 'admin' : 
-               profileData.role_id === 2 ? 'teacher' : 'student';
+        if (!profileData) {
+          console.error('No profile data found');
+          return 'student';
+        }
+        
+        // Now get the role name using the role_id (which is an integer)
+        const { data: roleData, error: roleError } = await supabase
+          .from('roles')
+          .select('name')
+          .eq('id', profileData.role_id)
+          .single();
+          
+        if (roleError || !roleData) {
+          console.error('Error getting role name:', roleError);
+          // Convert role_id to role name as fallback
+          return profileData.role_id === 1 ? 'admin' : 
+                 profileData.role_id === 2 ? 'teacher' : 'student';
+        }
+        
+        console.log('👑 Role from database:', roleData.name);
+        return roleData.name;
+      } catch (dbError) {
+        console.error('Database error when fetching role:', dbError);
+        
+        // Get the session user again as a last resort
+        const { data } = await supabase.auth.getSession();
+        const sessionUser = data?.session?.user;
+        
+        if (sessionUser?.user_metadata?.role_id) {
+          const roleId = sessionUser.user_metadata.role_id;
+          const roleName = roleId === 1 ? 'admin' : 
+                          roleId === 2 ? 'teacher' : 'student';
+          console.log('🆘 Using role from session metadata:', roleName);
+          return roleName;
+        }
       }
-      
-      return userData.role_name;
     } catch (error) {
       console.error('Error in fetchUserRole:', error);
-      return 'student'; // Default fallback
     }
+    
+    console.warn('⚠️ Defaulting to student role after all attempts failed');
+    return 'student'; // Ultimate default fallback
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

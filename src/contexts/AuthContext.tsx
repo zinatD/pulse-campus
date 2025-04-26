@@ -86,72 +86,66 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('👤 Fetching profile for user ID:', userId);
       profileFetchedRef.current = true;
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 8000)
-      );
+      // Use the new profiles_with_roles view to get both profile and role data in one query
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles_with_roles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-      const profilePromise = Promise.race([
-        supabase
-          .from('user_roles')
-          .select('*')
-          .eq('id', userId)
-          .single(),
-        timeoutPromise
-      ]);
+      if (profileError) {
+        console.error("❌ Error fetching profile with role:", profileError);
+        throw profileError;
+      }
 
-      const { data: userData, error: userError } = await profilePromise as any;
-
-      if (userError || !userData) {
-        console.error('Error getting user profile from view:', userError);
-
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (profileError) {
-          throw profileError;
-        }
-
-        setProfile(profileData);
-
-        const roleId = profileData?.role_id || 3;
-        const roleName = roleId === 1 ? 'admin' : roleId === 2 ? 'teacher' : 'student';
+      if (profileData) {
+        console.log('✅ Profile fetched successfully with role:', profileData.role_name);
+        
+        // Store the role_name from the direct query
+        const roleName = profileData.role_name || 
+                        (profileData.role_id === 1 ? 'admin' : 
+                         profileData.role_id === 2 ? 'teacher' : 'student');
+        
         localStorage.setItem('userRole', roleName);
-
+        console.log('👑 Role set from database:', roleName);
+        
+        // Set the profile with all the data we got
+        setProfile(profileData);
+        
+        // Store in session storage
         sessionStorage.setItem('authState', JSON.stringify({
           isAuthenticated: true,
           user,
           profile: profileData
         }));
-
-      } else {
-        setProfile(userData);
-        const roleName = userData.role_name || 'student';
-        localStorage.setItem('userRole', roleName);
-
-        sessionStorage.setItem('authState', JSON.stringify({
-          isAuthenticated: true,
-          user,
-          profile: userData
-        }));
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       profileFetchedRef.current = false;
-
-      if (user && !profile) {
+      
+      // Fallback logic for when the profile query fails
+      if (user) {
+        // Try to get role from user metadata as a fallback
+        const roleId = user.user_metadata?.role_id || 3;
+        const roleName = roleId === 1 ? 'admin' : 
+                        roleId === 2 ? 'teacher' : 'student';
+        
         const minimalProfile = {
           id: user.id,
           email: user.email || '',
           username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-          role_id: user.user_metadata?.role_id || 3,
+          role_id: roleId,
         };
 
         setProfile(minimalProfile as Profile);
-        const role = localStorage.getItem('userRole') || 'student';
-        localStorage.setItem('userRole', role);
+        localStorage.setItem('userRole', roleName);
+        console.log('🆘 Using emergency fallback role:', roleName);
+        
+        sessionStorage.setItem('authState', JSON.stringify({
+          isAuthenticated: true,
+          user,
+          profile: minimalProfile
+        }));
       }
     }
   }, [user, profile]);
@@ -163,11 +157,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('userRole');
     sessionStorage.removeItem('authState');
     profileFetchedRef.current = false;
-  }, []);
+  }, []); 
 
   useEffect(() => {
     let isMounted = true;
-
     const initializeAuth = async () => {
       if (initAttempts.current > 2) {
         console.error('Too many initialization attempts, stopping to prevent infinite loop');
@@ -182,56 +175,75 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setIsLoading(true);
         console.log('🔑 Checking auth session...');
 
+        // Increase timeout to 10 seconds
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+          setTimeout(() => {
+            console.log('⏱️ Session check timeout - checking for stored session');
+            reject(new Error('Session check timeout'));
+          }, 10000)
         );
 
-        const sessionPromise = Promise.race([
-          supabase.auth.getSession(),
-          timeoutPromise
-        ]);
+        let session = null;
+        let sessionError = null;
+        
+        try {
+          const sessionPromise = Promise.race([
+            supabase.auth.getSession(),
+            timeoutPromise
+          ]);
 
-        const { data: { session }, error: sessionError } = await sessionPromise as any;
+          const result = await sessionPromise as any;
+          session = result.data?.session;
+          sessionError = result.error;
+        } catch (err) {
+          console.warn('⚠️ Session fetch failed, checking local storage:', err);
+          sessionError = err;
+        }
 
         if (!isMounted) return;
 
         if (sessionError) {
+          // Check for stored auth state before giving up
+          const authFromStorage = sessionStorage.getItem('authState');
+          if (authFromStorage) {
+            try {
+              const parsed = JSON.parse(authFromStorage);
+              if (parsed.isAuthenticated && parsed.user) {
+                console.log('🔄 Using persisted auth due to session error');
+                setUser(parsed.user);
+                setProfile(parsed.profile);
+                setIsAuthenticated(true);
+                
+                // Ensure role is set
+                if (parsed.profile?.role_id) {
+                  const roleId = parsed.profile.role_id;
+                  const roleName = roleId === 1 ? 'admin' : 
+                                  roleId === 2 ? 'teacher' : 'student';
+                  localStorage.setItem('userRole', roleName);
+                }
+                
+                setIsLoading(false);
+                setSessionChecked(true);
+                return;
+              }
+            } catch (e) {
+              console.error('Failed to parse stored auth state:', e);
+            }
+          }
           throw sessionError;
         }
 
-        if (session) {
+        if (session) { // Check for stored auth state before giving up
           console.log('✅ Valid session found');
           setUser(session.user);
           setIsAuthenticated(true);
-
-          if (!profile || profile.id !== session.user.id) {
-            await fetchProfile(session.user.id);
-          }
+          await fetchProfile(session.user.id);
         } else {
           console.log('❌ No active session');
           clearAuthState();
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-
-        const authFromStorage = sessionStorage.getItem('authState');
-        if (authFromStorage && !isAuthenticated) {
-          try {
-            const parsed = JSON.parse(authFromStorage);
-            if (parsed.isAuthenticated && parsed.user) {
-              console.log('🔄 Using persisted auth as fallback');
-              setUser(parsed.user);
-              setProfile(parsed.profile);
-              setIsAuthenticated(true);
-            } else {
-              clearAuthState();
-            }
-          } catch {
-            clearAuthState();
-          }
-        } else {
-          clearAuthState();
-        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -240,9 +252,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
-    if (!sessionChecked) {
-      initializeAuth();
-    }
+    initializeAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -253,18 +263,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
           profileFetchedRef.current = false;
           sessionStorage.removeItem('authState');
-        }
-
-        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           setUser(session.user);
           setIsAuthenticated(true);
+          profileFetchedRef.current = false;
           await fetchProfile(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          clearAuthState();
         }
-
-        setIsLoading(false);
-        setSessionChecked(true);
       }
     );
 
@@ -274,7 +278,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         authListener.subscription.unsubscribe();
       }
     };
-  }, [fetchProfile, clearAuthState, isAuthenticated, profile, sessionChecked]);
+  }, [fetchProfile, clearAuthState, isAuthenticated, profile, sessionChecked]); 
 
   const signIn = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
@@ -285,7 +289,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
 
       if (error) throw error;
-
       setUser(data.user);
       setIsAuthenticated(true);
       profileFetchedRef.current = false;
@@ -300,11 +303,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signOut = useCallback(async () => {
     setIsLoading(true);
+    clearAuthState();
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-
-      clearAuthState();
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
@@ -313,14 +315,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [clearAuthState]);
 
-  const signUp = useCallback(async (
-    email: string, 
-    password: string, 
-    username: string, 
-    fullName: string, 
-    roleId: number,
-    extraData?: Record<string, any>
-  ) => {
+  const signUp = useCallback(async (email: string, password: string, username: string, fullName: string, roleId: number, extraData?: Record<string, any>) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -338,32 +333,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (error) throw error;
 
-      if (!data.user) {
-        throw new Error('User creation failed');
-      }
-
-      const profileData = {
-        id: data.user.id,
-        username,
-        full_name: fullName,
-        email: data.user.email,
-        role_id: roleId,
-        ...extraData
-      };
-
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert(profileData);
+        .upsert({
+          id: data.user.id,
+          username,
+          full_name: fullName,
+          role_id: roleId,
+          email: data.user.email,
+          ...extraData
+        });
 
       if (profileError) throw profileError;
 
-      setUser(data.user);
-      setProfile(profileData as Profile);
-      setIsAuthenticated(true);
-
       const roleName = roleId === 1 ? 'admin' : roleId === 2 ? 'teacher' : 'student';
       localStorage.setItem('userRole', roleName);
-
+      setUser(data.user);
+      setIsAuthenticated(true);
+      setProfile({
+        id: data.user.id,
+        username,
+        full_name: fullName,
+        role_id: roleId,
+        email: data.user.email,
+      } as Profile);
     } catch (error) {
       console.error('Error signing up:', error);
       throw error;
@@ -372,13 +365,50 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
+  // Add a function to force refresh the role
+  const refreshUserRole = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles_with_roles')
+        .select('role_name, role_id')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) throw error;
+      
+      if (data) {
+        const roleName = data.role_name || 
+                        (data.role_id === 1 ? 'admin' : 
+                         data.role_id === 2 ? 'teacher' : 'student');
+        
+        localStorage.setItem('userRole', roleName);
+        console.log('🔄 User role refreshed:', roleName);
+        return roleName;
+      }
+    } catch (error) {
+      console.error('Error refreshing user role:', error);
+    }
+    
+    return getUserRole();
+  }, [user?.id]);
+
+  // Update getUserRole to also check the database when needed
   const getUserRole = useCallback((): 'admin' | 'teacher' | 'student' => {
     const role = localStorage.getItem('userRole');
+    
     if (role === 'admin' || role === 'teacher' || role === 'student') {
-      return role;
+      return role as 'admin' | 'teacher' | 'student';
     }
+    
+    // If we don't have a role, trigger a refresh but return a default for now
+    if (user?.id) {
+      refreshUserRole();
+    }
+    
     return 'student';
-  }, []);
+  }, [user?.id, refreshUserRole]);
 
   const setUserRole = useCallback((role: string) => {
     if (role === 'admin' || role === 'teacher' || role === 'student') {
@@ -387,9 +417,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    if (!user) return;
-
     profileFetchedRef.current = false;
+    if (!user) return;
     try {
       await fetchProfile(user.id);
     } catch (error) {
@@ -408,6 +437,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signUp,
     getUserRole,
     setUserRole,
+    refreshUserRole, // Add the new function
     refreshProfile
   };
 

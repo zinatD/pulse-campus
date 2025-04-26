@@ -14,6 +14,8 @@ interface Course {
   instructor_id: string | null;
   created_at: string;
   updated_at: string;
+  public: boolean;
+  created_by: string | null;
 }
 
 const Courses = () => {
@@ -75,19 +77,20 @@ const Courses = () => {
     }
 
     try {
-      // First check if the user exists in the profiles table
       if (!user?.id) {
         throw new Error('User not authenticated');
       }
 
-      // Create the new course without setting instructor_id initially
+      // Create course with the simplified permissions model
       const { data, error } = await supabase
         .from('courses')
         .insert([
           {
             name: formData.name,
-            description: formData.description
-            // instructor_id will be set in a separate update if needed
+            description: formData.description,
+            public: true,                // Make it public by default
+            created_by: user.id,         // Set creator directly
+            instructor_id: user.id       // For backward compatibility
           }
         ])
         .select()
@@ -95,27 +98,12 @@ const Courses = () => {
 
       if (error) throw error;
 
-      // If course was created successfully and we need to set the instructor
-      // We can do it in a separate update to avoid the policy recursion
-      if (data?.id) {
-        const { error: updateError } = await supabase
-          .from('courses')
-          .update({ instructor_id: user.id })
-          .eq('id', data.id);
-          
-        if (updateError) {
-          console.error('Error setting instructor:', updateError);
-          // Continue anyway as the course was created
-        }
-      }
-
       showAlert('success', 'Course added successfully!');
       setFormData({ name: '', description: '' });
       setShowModal(false);
       fetchCourses();
     } catch (error: any) {
       console.error('Error adding course:', error);
-      // Show the actual error message for better debugging
       showAlert('error', `Failed to add course: ${error.message || 'Unknown error'}`);
     }
   };
