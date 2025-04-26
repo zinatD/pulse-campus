@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Journal</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --pastel-mint: #d4f1e5;
+            --pastel-teal: #b2e0d0;
+            --pastel-sage: #e0e8c5;
+            --pastel-olive: #d8e2b2;
+            --pastel-forest: #c1d7ae;
+            --accent-green: #81c784;
+            --dark-green: #2e7d32;
+            --soft-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            --paper-texture: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="white" opacity="0.8"/><path d="M0 0 L100 100 M100 0 L0 100" stroke="%23b2e0d0" stroke-width="0.5" opacity="0.3"/></svg>');
+        }
+        
+        body {
+            background-color: var(--pastel-mint);
+            font-family: 'Comic Neue', cursive, sans-serif;
+            padding-top: 20px;
+            background-image: var(--paper-texture);
+        }
+        
+        .journal-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .journal-header {
+            background-color: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--soft-shadow);
+            border: 2px dashed var(--accent-green);
+            text-align: center;
+            background-image: var(--paper-texture);
+        }
+        
+        .journal-title {
+            color: var(--dark-green);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .journal-subtitle {
+            color: var(--accent-green);
+            font-size: 1.1rem;
+        }
+        
+        .entry-card {
+            background-color: white;
+            border-radius: 18px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--soft-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 6px solid var(--pastel-teal);
+            background-image: var(--paper-texture);
+        }
+        
+        .entry-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .entry-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background-color: var(--pastel-sage);
+            border-radius: 0 0 0 40px;
+        }
+        
+        .entry-date {
+            background-color: var(--pastel-olive);
+            color: var(--dark-green);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .entry-title {
+            color: var(--dark-green);
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+        
+        .entry-content {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            position: relative;
+            max-height: 120px;
+            overflow: hidden;
+        }
+        
+        .entry-content.expanded {
+            max-height: none;
+        }
+        
+        .entry-content::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), white);
+            display: none;
+        }
+        
+        .entry-content.collapsed::after {
+            display: block;
+        }
+        
+        .read-more-btn {
+            background: none;
+            border: none;
+            color: var(--accent-green);
+            font-weight: bold;
+            padding: 5px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .read-more-btn:hover {
+            color: var(--dark-green);
+        }
+        
+        .read-more-btn i {
+            margin-left: 5px;
+            transition: transform 0.3s;
+        }
+        
+        .read-more-btn.expanded i {
+            transform: rotate(180deg);
+        }
+        
+        .entry-mood {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--pastel-mint);
+            padding: 3px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: var(--dark-green);
+        }
+        
+        .new-entry-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .new-entry-btn:hover {
+            transform: scale(1.1) rotate(10deg);
+            background-color: var(--dark-green);
+        }
+        
+        /* New Entry Modal - Now looks like a journal page */
+        #newEntryModal .modal-content {
+            border-radius: 20px;
+            border: 2px solid var(--pastel-teal);
+            background-color: #f9fbf7;
+            background-image: 
+                linear-gradient(to bottom, rgba(212, 241, 229, 0.3), rgba(212, 241, 229, 0.1)),
+                var(--paper-texture);
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        #newEntryModal .modal-header {
+            background-color: transparent;
+            border-bottom: 2px dashed var(--pastel-teal);
+            padding-bottom: 15px;
+            position: relative;
+        }
+        
+        #newEntryModal .modal-header::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--pastel-teal), transparent);
+        }
+        
+        #newEntryModal .modal-title {
+            color: var(--dark-green);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        #newEntryModal .modal-body {
+            padding: 20px 0;
+        }
+        
+        #newEntryModal .form-control, #newEntryModal .form-control:focus {
+            background-color: rgba(255,255,255,0.7);
+            border: 1px solid var(--pastel-teal);
+            border-radius: 10px;
+            box-shadow: none;
+        }
+        
+        #newEntryModal textarea.form-control {
+            min-height: 200px;
+            line-height: 1.6;
+            font-family: 'Comic Neue', cursive;
+            padding: 15px;
+            background-image: linear-gradient(to bottom, transparent, transparent 1.5em, rgba(178, 224, 208, 0.2) 0, rgba(178, 224, 208, 0.2));
+            background-size: 100% 1.6em;
+            background-origin: content-box;
+            background-attachment: local;
+        }
+        
+        .mood-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .mood-option {
+            padding: 8px 15px;
+            border-radius: 20px;
+            background-color: var(--pastel-mint);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .mood-option:hover, .mood-option.selected {
+            border-color: var(--accent-green);
+            background-color: white;
+        }
+        
+        .mood-option.selected {
+            font-weight: bold;
+            transform: scale(1.05);
+        }
+        
+        /* Custom font */
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+        
+        /* Decorative elements */
+        .leaf-decoration {
+            position: absolute;
+            opacity: 0.15;
+            z-index: -1;
+        }
+        
+        .leaf-1 {
+            top: 50px;
+            left: 5%;
+            font-size: 80px;
+            transform: rotate(-15deg);
+        }
+        
+        .leaf-2 {
+            bottom: 100px;
+            right: 8%;
+            font-size: 120px;
+            transform: rotate(25deg);
+        }
+        
+        /* Animation for new entries */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .new-entry {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        /* Journal lines for textarea */
+        .lined-paper {
+            background-image: linear-gradient(to bottom, transparent, transparent 1.5em, rgba(178, 224, 208, 0.2) 0, rgba(178, 224, 208, 0.2));
+            background-size: 100% 1.6em;
+            background-origin: content-box;
+            background-attachment: local;
+        }
+    </style>
+</head>
+<body>
+    <div class="journal-container">
+        <!-- Decorative leaves -->
+        <div class="leaf-decoration leaf-1">🌿</div>
+        <div class="leaf-decoration leaf-2">🍃</div>
+        
+        <!-- Journal Header -->
+        <div class="journal-header">
+            <h1 class="journal-title">My Journal</h1>
+            <p class="journal-subtitle">Do not let stress get you write it down 🌱</p>
+        </div>
+        
+        <!-- Journal Entries -->
+        <div id="journalEntries">
+            <!-- Entry 1 -->
+
+            
+            <!-- Entry 2 -->
+        
+ 
+    
+    <!-- New Entry Button -->
+    <button class="new-entry-btn" data-bs-toggle="modal" data-bs-target="#newEntryModal">
+        <i class="bi bi-plus-lg"></i>
+    </button>
+    
+    <!-- New Entry Modal - Now looks like a journal page -->
+    <div class="modal fade" id="newEntryModal" tabindex="-1" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newEntryModalLabel">New Journal Entry</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newEntryForm">
+                        <div class="mb-4">
+                            <label for="entryTitle" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="entryTitle" placeholder="What's your entry about?">
+                        </div>
+                        <div class="mb-4">
+                            <label for="entryContent" class="form-label">Your Thoughts</label>
+                            <textarea class="form-control lined-paper" id="entryContent" rows="10" placeholder="Write from your heart..."></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Today's Mood</label>
+                            <div class="mood-selector">
+                                <div class="mood-option selected">
+                                    <i class="bi bi-emoji-smile"></i> Happy
+                                </div>
+                                <div class="mood-option">
+                                    <i class="bi bi-emoji-frown"></i> Sad
+                                </div>
+                                <div class="mood-option">
+                                    <i class="bi bi-emoji-angry"></i> Angry
+                                </div>
+                                <div class="mood-option">
+                                    <i class="bi bi-emoji-heart-eyes"></i> Excited
+                                </div>
+                                <div class="mood-option">
+                                    <i class="bi bi-emoji-neutral"></i> Meh
+                                </div>
+                                <div class="mood-option">
+                                    <i class="bi bi-emoji-sunglasses"></i> Content
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="saveEntryBtn">
+                        <i class="bi bi-journal-bookmark"></i> Save Entry
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom JS -->
+    <script>
+        // Mood selection
+        document.querySelectorAll('.mood-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+        
+        // Read more functionality
+        document.addEventListener('click', function(e) {
+          if (e.target.classList.contains('read-more-btn')) {
+                const btn = e.target;
+                const content = btn.previousElementSibling;
+                
+                if (content.classList.contains('collapsed')) {
+                    content.classList.remove('collapsed');
+                    content.classList.add('expanded');
+                    btn.innerHTML = 'Read less <i class="bi bi-chevron-up"></i>';
+                    btn.classList.add('expanded');
+                } else {
+                    content.classList.add('collapsed');
+                    content.classList.remove('expanded');
+                    btn.innerHTML = 'Read more <i class="bi bi-chevron-down"></i>';
+                    btn.classList.remove('expanded');
+                    
+                    // Scroll to keep the entry in view
+                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+        });
+        
+        // Auto-expand entries that aren't too long
+        document.querySelectorAll('.entry-content').forEach(content => {
+            if (content.scrollHeight <= content.clientHeight) {
+                content.classList.remove('collapsed');
+                content.nextElementSibling.style.display = 'none';
+            }
+        });
+        
+        // Save new entry
+        document.getElementById('saveEntryBtn').addEventListener('click', function() {
+            const title = document.getElementById('entryTitle').value;
+            const content = document.getElementById('entryContent').value;
+            const mood = document.querySelector('.mood-option.selected').textContent.trim();
+            
+            if (!title || !content) {
+                alert('Please add both a title and some content!');
+                return;
+            }
+            
+            const today = new Date();
+            const options = { weekday: 'long', month: 'short', day: 'numeric' };
+            const dateString = today.toLocaleDateString('en-US', options);
+            
+            const entryHtml = `
+                <div class="entry-card new-entry">
+                    <span class="entry-date">${dateString}</span>
+                    <h3 class="entry-title">${title}</h3>
+                    <div class="entry-content collapsed">
+                        ${content.replace(/\n/g, '<br>')}
+                    </div>
+                    <button class="read-more-btn">
+                        Read more <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <span class="entry-mood">
+                        <i class="bi ${getMoodIcon(mood)}"></i> ${mood}
+                    </span>
+                </div>
+            `;
+            
+            // Prepend new entry
+            document.getElementById('journalEntries').insertAdjacentHTML('afterbegin', entryHtml);
+            
+            // Close modal and reset form
+            const modal = bootstrap.Modal.getInstance(document.getElementById('newEntryModal'));
+            modal.hide();
+            document.getElementById('newEntryForm').reset();
+            
+            // Scroll to new entry
+            document.querySelector('.new-entry').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Helper function to get mood icon
+        function getMoodIcon(mood) {
+            const moodIcons = {
+                'Happy': 'bi-emoji-smile',
+                'Sad': 'bi-emoji-frown',
+                'Angry': 'bi-emoji-angry',
+                'Excited': 'bi-emoji-heart-eyes',
+                'Meh': 'bi-emoji-neutral',
+                'Content': 'bi-emoji-sunglasses'
+            };
+            return moodIcons[mood] || 'bi-emoji-smile';
+        }
+    </script>
+</body>
+</html>
