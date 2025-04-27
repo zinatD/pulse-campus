@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Group Chat</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --pastel-mint: #d4f1e5;
+            --pastel-teal: #b2e0d0;
+            --pastel-sage: #e0e8c5;
+            --pastel-olive: #d8e2b2;
+            --pastel-forest: #c1d7ae;
+            --accent-green: #81c784;
+            --dark-green: #2e7d32;
+            --soft-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            --paper-texture: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="white" opacity="0.8"/><path d="M0 0 L100 100 M100 0 L0 100" stroke="%23b2e0d0" stroke-width="0.5" opacity="0.3"/></svg>');
+        }
+        
+        body {
+            background-color: var(--pastel-mint);
+            font-family: 'Comic Neue', cursive, sans-serif;
+            background-image: var(--paper-texture);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px);
+        }
+        
+        /* Chat Header */
+        .chat-header {
+            background-color: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--soft-shadow);
+            border: 2px dashed var(--accent-green);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-image: var(--paper-texture);
+        }
+        
+        .group-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .group-avatar {
+            width: 50px;
+            height: 50px;
+            background-color: var(--pastel-teal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--dark-green);
+        }
+        
+        .group-name {
+            color: var(--dark-green);
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+        
+        .group-description {
+            color: var(--accent-green);
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+        
+        .group-members {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .member-tag {
+            background-color: var(--pastel-mint);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: var(--dark-green);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .member-tag i {
+            margin-right: 5px;
+            color: var(--accent-green);
+        }
+        
+        /* Chat Area */
+        .chat-area {
+            background-color: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--soft-shadow);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-image: var(--paper-texture);
+            overflow: hidden;
+        }
+        
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            max-width: 70%;
+            padding: 12px 15px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        
+        .message.sent {
+            background-color: var(--pastel-teal);
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.received {
+            background-color: var(--pastel-sage);
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .sender-name {
+            font-weight: bold;
+            color: var(--dark-green);
+        }
+        
+        .message-time {
+            color: #666;
+            font-size: 0.7rem;
+        }
+        
+        .message-content {
+            line-height: 1.4;
+        }
+        
+        /* File message styles */
+        .file-message {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 10px;
+            margin-top: 5px;
+            border: 1px solid var(--pastel-teal);
+        }
+        
+        .file-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: var(--accent-green);
+        }
+        
+        .file-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .file-name {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-size {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .file-download {
+            margin-left: 10px;
+            color: var(--accent-green);
+            cursor: pointer;
+        }
+        
+        /* Image preview */
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+        
+        /* Message Input */
+        .message-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 2px dashed var(--pastel-teal);
+        }
+        
+        .message-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message-input textarea {
+            flex: 1;
+            border-radius: 15px;
+            border: 2px solid var(--pastel-teal);
+            padding: 10px 15px;
+            resize: none;
+            font-family: inherit;
+        }
+        
+        .message-input textarea:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 2px rgba(129, 199, 132, 0.3);
+        }
+        
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .send-btn:hover {
+            background-color: var(--dark-green);
+            transform: scale(1.05);
+        }
+        
+        .file-upload-btn {
+            background: none;
+            border: none;
+            color: var(--accent-green);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .file-preview {
+            display: flex;
+            align-items: center;
+            background-color: var(--pastel-mint);
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin-right: auto;
+        }
+        
+        .file-preview .file-icon {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+        
+        .file-preview .file-name {
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+        
+        .remove-file {
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        /* Study Materials Section */
+        .materials-toggle {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background-color: var(--accent-green);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .materials-sidebar {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100%;
+            background-color: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 100;
+            padding: 20px;
+            overflow-y: auto;
+            background-image: var(--paper-texture);
+        }
+        
+        .materials-sidebar.open {
+            right: 0;
+        }
+        
+        .materials-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed var(--pastel-teal);
+        }
+        
+        .materials-title {
+            color: var(--dark-green);
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+        
+        .close-materials {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            cursor: pointer;
+        }
+        
+        .material-item {
+            background-color: var(--pastel-mint);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .material-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        
+        .material-name {
+            font-weight: bold;
+            color: var(--dark-green);
+            margin-bottom: 5px;
+        }
+        
+        .material-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .material-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .material-btn {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .view-btn {
+            background-color: var(--accent-green);
+            color: white;
+        }
+        
+        .view-btn:hover {
+            background-color: var(--dark-green);
+        }
+        
+        .download-btn {
+            background-color: var(--pastel-sage);
+            color: var(--dark-green);
+        }
+        
+        .download-btn:hover {
+            background-color: var(--pastel-olive);
+        }
+        
+        .add-material {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .add-material input {
+            flex: 1;
+            border-radius: 10px;
+            border: 2px solid var(--pastel-teal);
+            padding: 8px 12px;
+        }
+        
+        .add-material button {
+            background-color: var(--accent-green);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        
+        /* Modal for image preview */
+        .modal-image {
+            max-width: 100%;
+            max-height: 80vh;
+        }
+        
+        /* Custom font */
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="group-info">
+                <div class="group-avatar" id="groupAvatar">SG</div>
+                <div>
+                    <h3 class="group-name" id="groupName">Study Group</h3>
+                    <p class="group-description" id="groupDescription">Group description goes here</p>
+                    <div class="group-members" id="groupMembers">
+                        <!-- Members will be added here -->
+                    </div>
+                </div>
+            </div>
+            <button class="materials-toggle" id="materialsToggle">
+                <i class="bi bi-journal-bookmark"></i>
+            </button>
+        </div>
+        
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="messages-container" id="messagesContainer">
+                <!-- Messages will be added here -->
+                <div class="welcome-message">
+                    <p style="text-align: center; color: #666; font-style: italic;">
+                        This is the beginning of your study group chat. Say hello to your group members!
+                    </p>
+                </div>
+            </div>
+            
+            <div class="message-input-container">
+                <div id="filePreviewContainer" style="display: none;">
+                    <!-- File preview will appear here -->
+                </div>
+                <div class="message-input">
+                    <button class="file-upload-btn" id="fileUploadBtn" title="Attach file">
+                        <i class="bi bi-paperclip"></i>
+                        <input type="file" id="fileInput" style="display: none;">
+                    </button>
+                    <textarea id="messageInput" placeholder="Type your message here..." rows="1"></textarea>
+                    <button class="send-btn" id="sendMessageBtn">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Materials Sidebar -->
+    <div class="materials-sidebar" id="materialsSidebar">
+        <div class="materials-header">
+            <h4 class="materials-title"><i class="bi bi-journal-bookmark"></i> Study Materials</h4>
+            <button class="close-materials" id="closeMaterials">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        
+        <div id="materialsList">
+            <!-- Materials will be added here -->
+            <div class="no-materials" style="text-align: center; color: #666; font-style: italic;">
+                No study materials shared yet
+            </div>
+        </div>
+        
+        <div class="add-material">
+            <input type="file" id="newMaterialFile" style="display: none;">
+            <button id="uploadMaterialBtn" class="btn btn-primary-custom" style="width: 100%;">
+                <i class="bi bi-upload"></i> Upload Study Material
+            </button>
+        </div>
+    </div>
+    
+    <!-- Image Preview Modal -->
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Image Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="" class="modal-image" id="modalImagePreview">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        // DOM elements
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const groupName = document.getElementById('groupName');
+        const groupDescription = document.getElementById('groupDescription');
+        const groupAvatar = document.getElementById('groupAvatar');
+        const groupMembers = document.getElementById('groupMembers');
+        const materialsToggle = document.getElementById('materialsToggle');
+        const materialsSidebar = document.getElementById('materialsSidebar');
+        const closeMaterials = document.getElementById('closeMaterials');
+        const materialsList = document.getElementById('materialsList');
+        const fileUploadBtn = document.getElementById('fileUploadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const filePreviewContainer = document.getElementById('filePreviewContainer');
+        const uploadMaterialBtn = document.getElementById('uploadMaterialBtn');
+        const newMaterialFile = document.getElementById('newMaterialFile');
+        const imagePreviewModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        
+        // Get group ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const groupId = urlParams.get('group');
+        const inviteCode = urlParams.get('invite');
+        
+        // Sample data - in a real app this would come from your backend/database
+        let groups = JSON.parse(localStorage.getItem('fluffyGroups')) || [];
+        let messages = JSON.parse(localStorage.getItem(`fluffyMessages_${groupId}`)) || [];
+        let studyMaterials = JSON.parse(localStorage.getItem(`fluffyMaterials_${groupId}`)) || [];
+        let currentUser = 'you'; // In a real app, this would be the logged in user
+        
+        // Track currently selected file
+        let currentFile = null;
+        
+        // Initialize chat
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load group info
+            const group = groups.find(g => g.id === groupId);
+            if (group) {
+                groupName.textContent = group.name;
+                groupDescription.textContent = group.description;
+                groupAvatar.textContent = group.name.substring(0, 2).toUpperCase();
+                
+                // Add members
+                group.members.forEach(member => {
+                    const memberTag = document.createElement('span');
+                    memberTag.className = 'member-tag';
+                    memberTag.innerHTML = `
+                        <i class="bi bi-person${member === currentUser ? '-check' : ''}"></i>
+                        ${member}
+                    `;
+                    groupMembers.appendChild(memberTag);
+                });
+                
+                // Show welcome message
+                const welcomeMessage = {
+                    sender: 'System',
+                    content: `You've entered the ${group.name} chat!`,
+                    timestamp: new Date().toISOString(),
+                    type: 'system'
+                };
+                
+                // Only add if it's not already there
+                if (!messages.some(m => m.content === welcomeMessage.content)) {
+                    messages.push(welcomeMessage);
+                    saveMessages();
+                }
+            }
+            
+            // Load messages
+            renderMessages();
+            
+            // Load study materials
+            renderStudyMaterials();
+            
+            // Set up event listeners
+            sendMessageBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Auto-resize textarea
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            
+            // Materials sidebar toggle
+            materialsToggle.addEventListener('click', toggleMaterialsSidebar);
+            closeMaterials.addEventListener('click', toggleMaterialsSidebar);
+            
+            // File upload button
+            fileUploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Upload study material
+            uploadMaterialBtn.addEventListener('click', () => newMaterialFile.click());
+            newMaterialFile.addEventListener('change', handleMaterialUpload);
+            
+            // If this is an invite link, show welcome message
+            if (inviteCode && group && !group.members.includes(currentUser)) {
+                setTimeout(() => {
+                    const welcomeMessage = {
+                        sender: 'System',
+                        content: `Welcome to the ${group.name} study group! You've joined using an invite link.`,
+                        timestamp: new Date().toISOString(),
+                        type: 'system'
+                    };
+                    messages.push(welcomeMessage);
+                    saveMessages();
+                    renderMessages();
+                    
+                    // Add user to group members
+                    if (!group.members.includes(currentUser)) {
+                        group.members.push(currentUser);
+                        localStorage.setItem('fluffyGroups', JSON.stringify(groups));
+                        
+                        // Add member tag
+                        const memberTag = document.createElement('span');
+                        memberTag.className = 'member-tag';
+                        memberTag.innerHTML = `
+                            <i class="bi bi-person-check"></i>
+                            ${currentUser}
+                        `;
+                        groupMembers.appendChild(memberTag);
+                    }
+                }, 1000);
+            }
+        });
+        
+        // Render messages
+        function renderMessages() {
+            messagesContainer.innerHTML = '';
+            
+            if (messages.length === 0) {
+                messagesContainer.innerHTML = `
+                    <div class="welcome-message">
+                        <p style="text-align: center; color: #666; font-style: italic;">
+                            This is the beginning of your study group chat. Say hello to your group members!
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            messages.forEach(message => {
+                const messageDiv = document.createElement('div');
+                
+                if (message.type === 'system') {
+                    messageDiv.className = 'system-message';
+                    messageDiv.style.textAlign = 'center';
+                    messageDiv.style.margin = '20px 0';
+                    messageDiv.style.color = '#666';
+                    messageDiv.style.fontStyle = 'italic';
+                    messageDiv.innerHTML = message.content;
+                } else {
+                    const isCurrentUser = message.sender === currentUser;
+                    messageDiv.className = `message ${isCurrentUser ? 'sent' : 'received'}`;
+                    
+                    const time = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
+                    messageDiv.innerHTML = `
+                        <div class="message-info">
+                            <span class="sender-name">${message.sender === currentUser ? 'You' : message.sender}</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content">${message.content}</div>
+                    `;
+                    
+                    // Add file if present
+                    if (message.file) {
+                        const fileDiv = document.createElement('div');
+                        fileDiv.className = 'file-message';
+                        
+                        // Get file icon based on type
+                        const fileIcon = getFileIcon(message.file.type);
+                        
+                        if (message.file.type.startsWith('image/')) {
+                            // For images, show a preview
+                            fileDiv.innerHTML = `
+                                <div class="file-icon">${fileIcon}</div>
+                                <div class="file-info">
+                                    <div class="file-name">${message.file.name}</div>
+                                    <div class="file-size">${formatFileSize(message.file.size)}</div>
+                                </div>
+                            `;
+                            
+                            const imgPreview = document.createElement('img');
+                            imgPreview.src = message.file.url;
+                            imgPreview.className = 'image-preview';
+                            imgPreview.onclick = () => previewImage(message.file.url);
+                            messageDiv.appendChild(imgPreview);
+                        } else {
+                            // For other files, show download button
+                            fileDiv.innerHTML = `
+                                <div class="file-icon">${fileIcon}</div>
+                                <div class="file-info">
+                                    <div class="file-name">${message.file.name}</div>
+                                    <div class="file-size">${formatFileSize(message.file.size)}</div>
+                                </div>
+                                <div class="file-download" onclick="downloadFile('${message.file.url}', '${message.file.name}')">
+                                    <i class="bi bi-download"></i>
+                                </div>
+                            `;
+                        }
+                        
+                        messageDiv.appendChild(fileDiv);
+                    }
+                }
+                
+                messagesContainer.appendChild(messageDiv);
+            });
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Get appropriate file icon
+        function getFileIcon(fileType) {
+            if (fileType.startsWith('image/')) return '<i class="bi bi-image"></i>';
+            if (fileType === 'application/pdf') return '<i class="bi bi-file-earmark-pdf"></i>';
+            if (fileType.startsWith('audio/')) return '<i class="bi bi-file-earmark-music"></i>';
+            if (fileType.startsWith('video/')) return '<i class="bi bi-file-earmark-play"></i>';
+            if (fileType === 'application/msword' || fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                return '<i class="bi bi-file-earmark-word"></i>';
+            }
+            if (fileType === 'application/vnd.ms-excel' || fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                return '<i class="bi bi-file-earmark-excel"></i>';
+            }
+            if (fileType === 'application/vnd.ms-powerpoint' || fileType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
+                return '<i class="bi bi-file-earmark-ppt"></i>';
+            }
+            return '<i class="bi bi-file-earmark"></i>';
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+        
+        // Handle file selection for chat
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            currentFile = file;
+            
+            // Create preview
+            filePreviewContainer.style.display = 'block';
+            filePreviewContainer.innerHTML = `
+                <div class="file-preview">
+                    <span class="file-icon">${getFileIcon(file.type)}</span>
+                    <span class="file-name">${file.name}</span>
+                    <span class="remove-file" onclick="removeSelectedFile()">
+                        <i class="bi bi-x"></i>
+                    </span>
+                </div>
+            `;
+            
+            // Clear file input
+            event.target.value = '';
+        }
+        
+        // Remove selected file
+        function removeSelectedFile() {
+            currentFile = null;
+            filePreviewContainer.style.display = 'none';
+            filePreviewContainer.innerHTML = '';
+        }
+        
+        // Send message
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content && !currentFile) return;
+            
+            const newMessage = {
+                sender: currentUser,
+                content: content,
+                timestamp: new Date().toISOString(),
+                type: 'user'
+            };
+            
+            // Handle file upload
+            if (currentFile) {
+                // In a real app, you would upload to a server here
+                // For demo, we'll create a data URL
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    newMessage.file = {
+                        name: currentFile.name,
+                        type: currentFile.type,
+                        size: currentFile.size,
+                        url: e.target.result
+                    };
+                    
+                    messages.push(newMessage);
+                    saveMessages();
+                    renderMessages();
+                    
+                    // Clear input and file
+                    messageInput.value = '';
+                    messageInput.style.height = 'auto';
+                    removeSelectedFile();
+                };
+                reader.readAsDataURL(currentFile);
+            } else {
+                messages.push(newMessage);
+                saveMessages();
+                renderMessages();
+                
+                // Clear input
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+            }
+            
+            // Simulate response if it's the first message
+            if (messages.length === 1) {
+                setTimeout(() => {
+                    const responseMessage = {
+                        sender: 'System',
+                        content: `Thanks for starting the conversation! Other group members will see your messages here.`,
+                        timestamp: new Date().toISOString(),
+                        type: 'system'
+                    };
+                    messages.push(responseMessage);
+                    saveMessages();
+                    renderMessages();
+                }, 1500);
+            }
+        }
+        
+        // Save messages to localStorage
+        function saveMessages() {
+            localStorage.setItem(`fluffyMessages_${groupId}`, JSON.stringify(messages));
+        }
+        
+        // Toggle materials sidebar
+        function toggleMaterialsSidebar() {
+            materialsSidebar.classList.toggle('open');
+        }
+        
+        // Handle study material upload
+        function handleMaterialUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // In a real app, you would upload to a server here
+            // For demo, we'll create a data URL
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newMaterial = {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    url: e.target.result,
+                    sharedBy: currentUser,
+                    timestamp: new Date().toISOString()
+                };
+                
+                studyMaterials.push(newMaterial);
+                localStorage.setItem(`fluffyMaterials_${groupId}`, JSON.stringify(studyMaterials));
+                renderStudyMaterials();
+                
+                // Notify group
+                const notificationMessage = {
+                    sender: 'System',
+                    content: `${currentUser} shared a new study material: ${file.name}`,
+                    timestamp: new Date().toISOString(),
+                    type: 'system'
+                };
+                messages.push(notificationMessage);
+                saveMessages();
+                renderMessages();
+                
+                // Clear file input
+                event.target.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Render study materials
+        function renderStudyMaterials() {
+            if (studyMaterials.length === 0) {
+                materialsList.innerHTML = `
+                    <div class="no-materials" style="text-align: center; color: #666; font-style: italic;">
+                        No study materials shared yet
+                    </div>
+                `;
+                return;
+            }
+            
+            materialsList.innerHTML = '';
+            
+            studyMaterials.forEach((material, index) => {
+                const materialItem = document.createElement('div');
+                materialItem.className = 'material-item';
+                materialItem.innerHTML = `
+                    <div class="material-name">${material.name}</div>
+                    <div class="material-meta">
+                        <span>Shared by ${material.sharedBy === currentUser ? 'you' : material.sharedBy}</span>
+                        <span>${new Date(material.timestamp).toLocaleDateString()}</span>
+                    </div>
+                    <div class="material-actions">
+                        <button class="material-btn view-btn" onclick="${material.type.startsWith('image/') ? `previewImage('${material.url}')` : `viewMaterial('${material.url}')`}">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                        <button class="material-btn download-btn" onclick="downloadFile('${material.url}', '${material.name}')">
+                            <i class="bi bi-download"></i> Download
+                        </button>
+                    </div>
+                `;
+                materialsList.appendChild(materialItem);
+            });
+        }
+        
+        // Preview image in modal
+        function previewImage(url) {
+            document.getElementById('modalImagePreview').src = url;
+            imagePreviewModal.show();
+        }
+        
+        // View material
+        function viewMaterial(url) {
+            window.open(url, '_blank');
+        }
+        
+        // Download file
+        function downloadFile(url, fileName) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>
