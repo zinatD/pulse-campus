@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Groups</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-light: #81c784;
+            --primary-lighter: #e8f5e9;
+            --accent-color: #ffb74d;
+            --pastel-pink: #ffd6e0;
+            --pastel-blue: #c0e6ff;
+            --pastel-purple: #e6d3ff;
+            --pastel-green: #d0f0c0;
+            --pastel-yellow: #fff4c0;
+        }
+        
+        body {
+            background-color: var(--primary-lighter);
+            font-family: 'Comic Neue', cursive, sans-serif;
+        }
+        
+        /* Cute shaped cards */
+        .group-card {
+            border-radius: 20px 20px 50px 20px;
+            transition: all 0.3s;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .group-card::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        .group-card-1 {
+            background-color: var(--pastel-pink);
+            transform: rotate(-2deg);
+        }
+        
+        .group-card-2 {
+            background-color: var(--pastel-blue);
+            transform: rotate(1deg);
+            border-radius: 20px 50px 20px 20px;
+        }
+        
+        .group-card-3 {
+            background-color: var(--pastel-purple);
+            transform: rotate(-1deg);
+            border-radius: 50px 20px 20px 20px;
+        }
+        
+        .group-card-4 {
+            background-color: var(--pastel-green);
+            transform: rotate(2deg);
+        }
+        
+        .group-card-5 {
+            background-color: var(--pastel-yellow);
+            border-radius: 20px 20px 20px 50px;
+        }
+        
+        .group-card:hover {
+            transform: rotate(0deg) scale(1.05) !important;
+            box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+        }
+        
+        .member-badge {
+            background-color: white;
+            color: var(--primary-color);
+            border-radius: 15px;
+            padding: 3px 10px;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .member-badge i {
+            margin-right: 5px;
+            color: var(--accent-color);
+        }
+        
+        .btn-primary-custom {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 15px;
+            padding: 8px 20px;
+            font-weight: bold;
+        }
+        
+        .btn-primary-custom:hover {
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        
+        .btn-accent {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #333;
+            border-radius: 15px;
+            padding: 8px 20px;
+            font-weight: bold;
+        }
+        
+        .btn-accent:hover {
+            background-color: #ffa726;
+            border-color: #ffa726;
+            transform: translateY(-2px);
+        }
+        
+        /* Sticker effect for days left */
+        .days-left-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: white;
+            color: var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px dashed var(--accent-color);
+        }
+        
+        /* Group view modal */
+        #groupViewModal .modal-content {
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        #groupViewModal .modal-header {
+            background-color: var(--pastel-blue);
+            border-bottom: none;
+        }
+        
+        #groupViewModal .member-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        /* Floating action button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 100;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+        
+        /* Custom font */
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Comic Neue', cursive;
+            font-weight: 700;
+        }
+        
+        /* Cute loading animation */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Header with cute title -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-primary">
+                <i class="bi bi-journal-bookmark-fill"></i> Study Squads
+                <small class="text-muted d-block" style="font-size: 1rem;">Learn together, grow together!</small>
+            </h1>
+            <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+                <i class="bi bi-plus-lg"></i> New Squad
+            </button>
+        </div>
+        
+        <!-- Active Groups Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 class="mb-3"><i class="bi bi-people-fill"></i> Your Active Squads</h3>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="activeGroups">
+                    <!-- Groups will be loaded here -->
+                    <div class="col-12 text-center py-5">
+                        <div class="alert alert-info" style="border-radius: 20px;">
+                            <div class="floating mb-3">
+                                <i class="bi bi-emoji-frown" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4>No Study Squads Yet</h4>
+                            <p>Create your first squad to start learning with friends!</p>
+                            <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+                                <i class="bi bi-plus-lg"></i> Create Squad
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 class="mb-3"><i class="bi bi-graph-up"></i> Weekly Reports</h3>
+                <div class="row row-cols-1 row-cols-md-2 g-4" id="reportsSection">
+                    <!-- Reports will be loaded here -->
+                    <div class="col-12">
+                        <div class="alert alert-secondary" style="border-radius: 20px;">
+                            <div class="floating mb-3">
+                                <i class="bi bi-clipboard-data" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4>No Reports Yet</h4>
+                            <p>Your weekly reports will appear here after your first study session!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Group Modal -->
+    <div class="modal fade" id="createGroupModal" tabindex="-1" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header" style="background-color: var(--pastel-pink); border-bottom: none;">
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle"></i> Create New Squad
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createGroupForm">
+                        <div class="mb-3">
+                            <label for="groupName" class="form-label">Squad Name</label>
+                            <input type="text" class="form-control" id="groupName" required 
+                                   style="border-radius: 15px; border: 2px solid var(--pastel-blue);">
+                        </div>
+                        <div class="mb-3">
+                            <label for="groupDescription" class="form-label">Description (optional)</label>
+                            <textarea class="form-control" id="groupDescription" rows="3"
+                                      style="border-radius: 15px; border: 2px solid var(--pastel-purple);"></textarea>
+                            <small class="text-muted">What will your squad study together?</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Invite Friends</label>
+                            <div class="p-3 mb-3 rounded" 
+                                 style="background-color: var(--pastel-yellow); border-radius: 15px;">
+                                <p class="mb-2"><i class="bi bi-link-45deg"></i> Share this special invite link:</p>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="inviteLink" 
+                                           value="https://studysquads.com/join/abc123" readonly
+                                           style="border-radius: 15px 0 0 15px; border: 2px solid var(--accent-color);">
+                                    <button class="btn btn-outline-secondary" type="button" id="copyLinkBtn"
+                                            style="border-radius: 0 15px 15px 0; border: 2px solid var(--accent-color);">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Friends will need to sign up first
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: none;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                            style="border-radius: 15px;">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom" id="createGroupBtn">
+                        <i class="bi bi-stars"></i> Create Squad
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Group View Modal (appears when View button is clicked) -->
+    <div class="modal fade" id="groupViewModal" tabindex="-1" aria-labelledby="groupViewModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--pastel-green);">
+                    <h5 class="modal-title" id="groupViewModalLabel">
+                        <i class="bi bi-people-fill"></i> <span id="viewGroupName">Squad Name</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="viewGroupDescription" class="mb-4">Group description goes here</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6><i class="bi bi-clock"></i> Time Left</h6>
+                            <div class="progress" style="height: 10px; border-radius: 5px;">
+                                <div class="progress-bar progress-bar-striped" role="progressbar" 
+                                     style="width: 75%; background-color: var(--primary-color);"></div>
+                            </div>
+                        </div>
+                        <span class="badge bg-warning text-dark" id="viewGroupDaysLeft">5 days</span>
+                    </div>
+                    
+                    <h6 class="mt-4"><i class="bi bi-person-lines-fill"></i> Squad Members</h6>
+                    <div class="member-list">
+                        <div class="d-flex flex-wrap gap-2" id="groupMembersList">
+                            <!-- Members will be added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6><i class="bi bi-share"></i> Invite More Friends</h6>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="viewInviteLink" readonly
+                                   style="border-radius: 15px 0 0 15px;">
+                            <button class="btn btn-accent" type="button" id="copyViewLinkBtn"
+                                    style="border-radius: 0 15px 15px 0;">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: none;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                            style="border-radius: 15px;">Close</button>
+                    <button type="button" class="btn btn-primary-custom" id="startStudySessionBtn">
+                        <i class="bi bi-camera-reels"></i> Start Study Session
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating action button -->
+    <div class="fab" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+        <i class="bi bi-plus-lg"></i>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom JS -->
+    <script>
+        // Sample data
+        const sampleGroups = [
+            {
+                id: 1,
+                name: "Biology Buddies",
+                description: "Exploring the wonders of life together! 🧬🌿",
+                members: ["you", "johndoe", "maryjane", "alexwong"],
+                createdBy: "johndoe",
+                createdDate: new Date(),
+                expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                inviteLink: "https://studysquads.com/join/bio123",
+                cardClass: "group-card-1"
+            },
+            {
+                id: 2,
+                name: "Math Magicians",
+                description: "Solving problems with magic numbers! ✨🔢",
+                members: ["you", "emilyrose", "mikechen"],
+                createdBy: "emilyrose",
+                createdDate: new Date(),
+                expiryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+                inviteLink: "https://studysquads.com/join/math456",
+                cardClass: "group-card-2"
+            },
+            {
+                id: 3,
+                name: "History Heroes",
+                description: "Time traveling through past events! ⏳🏰",
+                members: ["you", "sarahsmith", "davidkim"],
+                createdBy: "sarahsmith",
+                createdDate: new Date(),
+                expiryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+                inviteLink: "https://studysquads.com/join/hist789",
+                cardClass: "group-card-3"
+            }
+        ];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderGroups();
+            
+            // Set up event listeners
+            document.getElementById('copyLinkBtn').addEventListener('click', copyToClipboard);
+            document.getElementById('createGroupBtn').addEventListener('click', createNewGroup);
+            document.getElementById('copyViewLinkBtn').addEventListener('click', copyToClipboard);
+            document.getElementById('startStudySessionBtn').addEventListener('click', startStudySession);
+        });
+        
+        // Render groups
+        function renderGroups() {
+            const activeGroupsContainer = document.getElementById('activeGroups');
+            
+            if (sampleGroups.length === 0) {
+                return; // Keep the "no groups" message
+            }
+            
+            activeGroupsContainer.innerHTML = '';
+            
+            sampleGroups.forEach(group => {
+                const daysLeft = getDaysLeft(group.expiryDate);
+                
+                if (daysLeft <= 0) return; // Skip expired groups
+                
+                const groupCard = document.createElement('div');
+                groupCard.className = 'col';
+                groupCard.innerHTML = `
+                    <div class="card ${group.cardClass} h-100">
+                        <div class="days-left-badge">
+                            ${daysLeft}<small>days</small>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">${group.name}</h5>
+                            <p class="card-text">${group.description}</p>
+                            <div class="mb-3">
+                                <small class="text-muted">Created by ${group.createdBy}</small>
+                            </div>
+                            <div class="mb-3">
+                                ${group.members.slice(0, 3).map(member => 
+                                    `<span class="member-badge me-1">
+                                        <i class="bi bi-person${member === 'you' ? '-check' : ''}"></i>
+                                        ${member}
+                                    </span>`
+                                ).join('')}
+                                ${group.members.length > 3 ? 
+                                    `<span class="member-badge">+${group.members.length - 3} more</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-sm btn-primary-custom view-group-btn" data-group-id="${group.id}">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                                <button class="btn btn-sm btn-accent" onclick="shareGroupLink('${group.inviteLink}')">
+                                    <i class="bi bi-share"></i> Share
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                activeGroupsContainer.appendChild(groupCard);
+            });
+            
+            // Add event listeners to all view buttons
+            document.querySelectorAll('.view-group-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const groupId = parseInt(this.getAttribute('data-group-id'));
+                    viewGroupDetails(groupId);
+                });
+            });
+        }
+        
+        // View group details
+        function viewGroupDetails(groupId) {
+            const group = sampleGroups.find(g => g.id === groupId);
+            if (!group) return;
+            
+            document.getElementById('viewGroupName').textContent = group.name;
+            document.getElementById('viewGroupDescription').textContent = group.description;
+            document.getElementById('viewGroupDaysLeft').textContent = `${getDaysLeft(group.expiryDate)} days left`;
+            document.getElementById('viewInviteLink').value = group.inviteLink;
+            
+            // Update members list
+            const membersList = document.getElementById('groupMembersList');
+            membersList.innerHTML = '';
+            group.members.forEach(member => {
+                const memberBadge = document.createElement('span');
+                memberBadge.className = 'member-badge';
+                memberBadge.innerHTML = `
+                    <i class="bi bi-person${member === 'you' ? '-check' : ''}"></i>
+                    ${member} ${member === 'you' ? '(you)' : ''}
+                `;
+                membersList.appendChild(memberBadge);
+            });
+            
+            // Show modal
+            const viewModal = new bootstrap.Modal(document.getElementById('groupViewModal'));
+            viewModal.show();
+        }
+        
+        // Start study session
+        function startStudySession() {
+            alert('Starting study session for: ' + document.getElementById('viewGroupName').textContent);
+            // In a real app, this would redirect to the study session page
+        }
+        
+        // Helper function to calculate days left
+        function getDaysLeft(expiryDate) {
+            const expiry = new Date(expiryDate);
+            const today = new Date();
+            return Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+        }
+        
+        // Share group link
+        function shareGroupLink(link) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Join my study squad!',
+                    text: 'I invited you to join my awesome study squad',
+                    url: link
+                }).catch(err => {
+                    console.log('Error sharing:', err);
+                    copyToClipboard(link);
+                });
+            } else {
+                copyToClipboard(link);
+            }
+        }
+        
+        // Copy to clipboard
+        function copyToClipboard() {
+            let textToCopy;
+            if (this.id === 'copyViewLinkBtn') {
+                textToCopy = document.getElementById('viewInviteLink').value;
+            } else {
+                textToCopy = document.getElementById('inviteLink').value;
+            }
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Change button to show success
+                const button = this.id ? document.getElementById(this.id) : this;
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                button.classList.add('btn-success');
+                button.classList.remove('btn-outline-secondary', 'btn-accent');
+                
+                // Revert after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('btn-success');
+                    if (button.id === 'copyViewLinkBtn') {
+                        button.classList.add('btn-accent');
+                    } else {
+                        button.classList.add('btn-outline-secondary');
+                    }
+                }, 2000);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+        
+        // Create new group
+        function createNewGroup() {
+            const groupName = document.getElementById('groupName').value;
+            const groupDescription = document.getElementById('groupDescription').value;
+            
+            if (!groupName) {
+                alert('Please enter a squad name');
+                return;
+            }
+            
+            // In a real app, you would send this to your backend
+            const newGroup = {
+                id: sampleGroups.length + 1,
+                name: groupName,
+                description: groupDescription,
+                members: ['you'],
+                createdBy: 'you',
+                createdDate: new Date(),
+                expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                inviteLink: `https://studysquads.com/join/${Math.random().toString(36).substring(2, 8)}`,
+                cardClass: `group-card-${Math.floor(Math.random() * 5) + 1}`
+            };
+            
+            sampleGroups.push(newGroup);
+            renderGroups();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createGroupModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('createGroupForm').reset();
+        }
+    </script>
+</body>
+</html>
