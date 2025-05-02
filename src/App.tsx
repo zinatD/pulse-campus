@@ -8,6 +8,7 @@ import LoadingScreen from './components/LoadingScreen';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Lazy load components for better performance
+const Attendance = lazy(() => import('./components/Attendance'));
 const Login = lazy(() => import('./pages/Auth/Login'));
 const Register = lazy(() => import('./pages/Auth/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -103,6 +104,17 @@ const AppRoutes = () => {
               <Quiz />
             </ProtectedRoute>
           } />
+          <Route path="/attendance" element={
+            <ProtectedRoute>
+              <Attendance />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/attendance" element={
+  <ProtectedRoute>
+    <Attendance />
+  </ProtectedRoute>
+} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
