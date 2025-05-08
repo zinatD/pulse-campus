@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+     <link rel="stylesheet" href="/style.css">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-light: #81c784;
+            --primary-lighter: #e8f5e9;
+            --accent-color: #ffb74d;
+            --pastel-pink: #ffd6e0;
+            --pastel-blue: #c0e6ff;
+            --pastel-purple: #e6d3ff;
+            --pastel-green: #d0f0c0;
+            --pastel-yellow: #fff4c0;
+            --text-dark: #333;
+            --text-light: #666;
+            --border-color: #ddd;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: var(--text-dark);
+        }
+
+        .main-content {
+            padding: 2rem;
+            min-height: calc(100vh - 120px);
+        }
+
+        .class-card {
+            transition: transform 0.3s;
+            cursor: pointer;
+            height: 100%;
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .class-code {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            letter-spacing: 1px;
+            background-color: white;
+            border-radius: 5px;
+            padding: 0.25rem 0.5rem;
+            display: inline-block;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background-color: var(--pastel-yellow);
+            color: #ff8f00;
+        }
+
+        .status-submitted {
+            background-color: var(--pastel-blue);
+            color: #0277bd;
+        }
+
+        .status-graded {
+            background-color: var(--pastel-green);
+            color: var(--primary-color);
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #1b5e20;
+            color: white;
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-accent:hover {
+            background-color: #f57c00;
+            color: white;
+        }
+
+        .assignment-card, .material-card, .message-card {
+            transition: transform 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .assignment-card:hover, .material-card:hover, .message-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .assignment-header {
+            background-color: var(--primary-light);
+            color: white;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border: none;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-light);
+        }
+
+        .add-class-btn {
+            width: 100%;
+            height: 100%;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            background-color: rgba(0,0,0,0.02);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-class-btn:hover {
+            background-color: rgba(0,0,0,0.05);
+            border-color: var(--primary-color);
+        }
+
+        .class-view-header {
+            background-color: var(--primary-lighter);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper" >
+       
+        <aside id="sidebar" class="js-sidebar">
+            <!-- Content For Sidebar -->
+            <div class="h-100">
+                <div class="sidebar-logo">
+                    <a href="#"><i class="bi bi-command" style="color:white; margin-right:5px;"></i>Pulse Camp</a>
+                </div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-header">
+                       pages
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/dashboard.html" class="sidebar-link">
+                            <i class="bi bi-sliders2-vertical" style="margin-right:5px;"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link " 
+                            aria-expanded="false"><i class="bi bi-textarea-t" style="margin-right:5px;"></i>GPA tracker
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link" 
+                            aria-expanded="false"><i class="bi bi-person-gear" style="margin-right:5px;"></i>Study Room
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link " 
+                            aria-expanded="false"><i class="bi bi-textarea-resize" style="margin-right:5px;"></i>My Courses
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">
+                            <i class="bi bi-card-text" style="margin-right:5px;"></i>Scheduler
+                        </a>
+                    </li>
+
+                
+                </ul>
+            </div>
+        </aside>
+        <div class="main ">
+            
+            <nav class="navbar navbar-expand px-3">
+                <button class="btn" id="sidebar-toggle" type="button" style="color:#002E79;">
+                    <i class="bi bi-text-left" style="font-size: 1.5rem;"></i> 
+                </button>
+                
+                <div class="navbar-collapse navbar">
+                    <ul class="navbar-nav">
+                
+                        <li class="nav-item me-3">
+                            <a href="#" class="nav-icon pe-md-0">
+                                <i class="bi bi-bell" style="font-size: 1.2rem; color: #255c4c; margin-right:5px;"></i>
+                                <span class="badge bg-danger" id="notification-count"></span>
+                            </a>
+                        </li>
+                        
+                        
+                        <li class="nav-item me-3 dropdown">
+                            <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
+                                <i class="bi bi-person-circle" style="font-size: 1.2rem; color: #255c4c;margin-right:5px;"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end ">
+                                <a href="#" class="dropdown-item" style="font-size:0.5rem; font-weight:400;">Profil</a>
+                                <a href="#" class="dropdown-item">Settings</a>
+                                <a href="/front/signin.html" class="dropdown-item">Log Out</a>
+                            </div>
+                            
+                        </li>
+                    
+                    </ul>
+                </div>
+            </nav>
+        
+            <main class="content px-3 py-2">
+                <!-- Search Section -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex align-items-center pt-2">
+                        <!-- Search Icon that expands into an input field -->
+                        <div class="box">
+                            <input type="text" placeholder="Search..." id="search-input">
+                            <a href="#"> <i class="bi bi-search search-icon" style="color:#fff;"></i></a>
+                        </div>
+                        
+                    </div>
+                    <!-- Other Elements for the Symposium Page -->
+                    <div class="d-flex gap-3">
+                        
+                      
+                    
+                        
+                    </div>
+                    
+                </div>
+                            
+                <!-- Main Content for the Symposium (Add your content here) -->
+                <section class="shadow">
+                    <!-- You can add sections like article lists, symposium details, etc. -->
+    <div class="container-fluid main-content">
+        <div class="row">
+            <div class="col-12">
+                <!-- Classes View (shown by default) -->
+                <div id="classes-view">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>My Classes</h2>
+                        <button class="btn btn-primary-custom" id="add-class-btn">
+                            <i class="bi bi-plus-lg"></i> Add Class
+                        </button>
+                    </div>
+                    
+                    <div class="row" id="classes-list">
+                        <!-- Classes will be added here dynamically -->
+                        <div class="col-md-4 mb-4">
+                            <div class="add-class-btn" id="add-class-placeholder">
+                                <i class="bi bi-plus-lg fs-1"></i>
+                                <span>Add a Class</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Class Detail View (hidden by default) -->
+                <div class="d-none" id="class-detail-view">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 id="class-detail-title">Class Name</h2>
+                        <button class="btn btn-outline-secondary" id="back-to-classes-btn">
+                            <i class="bi bi-arrow-left"></i> Back to Classes
+                        </button>
+                    </div>
+
+                    <div class="class-view-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="class-code" id="current-class-code">CLASSCODE</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary" id="copy-class-code-btn">
+                                <i class="bi bi-clipboard"></i> Copy Code
+                            </button>
+                            <button class="btn btn-sm btn-primary-custom ms-2" id="share-class-code-btn">
+                                <i class="bi bi-share"></i> Share
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Teacher View -->
+                    <div class="teacher-view d-none" id="teacher-class-view">
+                        <ul class="nav nav-tabs" id="teacherTabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#assignments-panel">Assignments</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#materials-panel">Materials</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#messages-panel">Messages</a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content mt-3">
+                            <!-- Assignments Panel -->
+                            <div class="tab-pane fade show active" id="assignments-panel">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h3>Assignments</h3>
+                                    <button id="create-assignment-btn" class="btn btn-primary-custom">
+                                        <i class="bi bi-plus-lg"></i> Create Assignment
+                                    </button>
+                                </div>
+                                
+                                <div class="row" id="assignments-list">
+                                    <!-- Assignments will be added here dynamically -->
+                                </div>
+
+                                <!-- Create Assignment Form (Hidden by default) -->
+                                <div class="card mt-3 d-none" id="create-assignment-form">
+                                    <div class="card-body">
+                                        <h3 class="mb-3">Create New Assignment</h3>
+                                        <div class="mb-3">
+                                            <label for="assignment-title" class="form-label">Assignment Title</label>
+                                            <input type="text" class="form-control" id="assignment-title" placeholder="Enter assignment title">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="assignment-description" class="form-label">Description</label>
+                                            <textarea class="form-control" id="assignment-description" rows="3" placeholder="Enter assignment details"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="assignment-due-date" class="form-label">Due Date</label>
+                                            <input type="date" class="form-control" id="assignment-due-date">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="assignment-points" class="form-label">Total Points</label>
+                                            <input type="number" class="form-control" id="assignment-points" min="0" step="1" value="100">
+                                        </div>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button class="btn btn-secondary" id="cancel-assignment-btn">Cancel</button>
+                                            <button class="btn btn-primary-custom" id="save-assignment-btn">Create Assignment</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Assignment Review (Hidden by default) -->
+                                <div class="card mt-3 d-none" id="assignment-review">
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <h3 id="review-assignment-title">Assignment Title</h3>
+                                            <p id="review-assignment-meta">Due: - | Total Points: -</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <h4>Submission Details</h4>
+                                            <div class="table-responsive">
+                                                <table class="table">
+                                                    <thead>
+                                                        <tr style="background-color: var(--primary-lighter);">
+                                                            <th>Student Name</th>
+                                                            <th>Submission Date</th>
+                                                            <th>Status</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="submission-table-body">
+                                                        <!-- Submissions will be added here dynamically -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-secondary" id="back-from-review-btn">Back to Assignments</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Grade Assignment Modal -->
+                                <div class="modal fade" id="grade-modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Grade Submission</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <h6 id="grade-student-name" class="mb-3">Student - Assignment</h6>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Submission</label>
+                                                    <div class="p-3 bg-light rounded">
+                                                        <p id="submission-content">This is the student's submission content.</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="grade-input" class="form-label">Grade (out of <span id="max-grade">100</span>)</label>
+                                                    <input type="number" class="form-control" id="grade-input" min="0">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="feedback-input" class="form-label">Feedback</label>
+                                                    <textarea class="form-control" id="feedback-input" rows="3" placeholder="Provide feedback on the submission"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-primary-custom" id="submit-grade-btn">Submit Grade</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Materials Panel -->
+                            <div class="tab-pane fade" id="materials-panel">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h3>Course Materials</h3>
+                                    <button class="btn btn-primary-custom" id="upload-material-btn">
+                                        <i class="bi bi-upload"></i> Upload Material
+                                    </button>
+                                </div>
+                                
+                                <div id="materials-list">
+                                    <!-- Materials will be added here dynamically -->
+                                </div>
+
+                                <!-- Upload Material Modal -->
+                                <div class="modal fade" id="upload-material-modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Upload New Material</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="material-title" class="form-label">Title</label>
+                                                    <input type="text" class="form-control" id="material-title" placeholder="Enter material title">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="material-description" class="form-label">Description</label>
+                                                    <textarea class="form-control" id="material-description" rows="3" placeholder="Enter description"></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="material-file" class="form-label">File</label>
+                                                    <input class="form-control" type="file" id="material-file">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-primary-custom" id="save-material-btn">Upload Material</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Messages Panel -->
+                            <div class="tab-pane fade" id="messages-panel">
+                                <div class="mb-3">
+                                    <h3>Messages from Students</h3>
+                                    <div id="messages-container" class="mt-3">
+                                        <!-- Messages will be added here dynamically -->
+                                    </div>
+                                </div>
+
+                                <!-- Reply Message Modal -->
+                                <div class="modal fade" id="reply-message-modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Reply to <span id="reply-student-name">Student</span></h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <p id="original-message-content">Original message content...</p>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="reply-content" class="form-label">Your Reply</label>
+                                                    <textarea class="form-control" id="reply-content" rows="3" placeholder="Type your reply here"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-primary-custom" id="send-reply-btn">Send Reply</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student View -->
+                    <div class="student-view d-none" id="student-class-view">
+                        <ul class="nav nav-tabs" id="studentTabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#student-assignments-panel">Assignments</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#student-materials-panel">Materials</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#student-messages-panel">Messages</a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content mt-3">
+                            <!-- Assignments Panel -->
+                            <div class="tab-pane fade show active" id="student-assignments-panel">
+                                <h3>Your Assignments</h3>
+                                <div class="row" id="student-assignments-list">
+                                    <!-- Student assignments will be added here dynamically -->
+                                </div>
+
+                                <!-- Submission Modal -->
+                                <div class="modal fade" id="submission-modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="submission-modal-title">Submit Assignment</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <h6 id="assignment-title-display">Assignment Title</h6>
+                                                    <p id="assignment-due-date-display">Due: -</p>
+                                                    <p id="assignment-description-display">Description: -</p>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="submission-text" class="form-label">Your Submission</label>
+                                                    <textarea class="form-control" id="submission-text" rows="5" placeholder="Type your submission here"></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="submission-file" class="form-label">Or Upload File</label>
+                                                    <input class="form-control" type="file" id="submission-file">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-primary-custom" id="submit-assignment-btn">Submit Assignment</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Grade View Modal -->
+                                <div class="modal fade" id="grade-view-modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Your Grade</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="text-center mb-3">
+                                                    <div class="d-inline-block p-4 rounded-circle border border-5 border-success">
+                                                        <h2 id="grade-display">-</h2>
+                                                    </div>
+                                                    <p>out of <span id="max-points-display">100</span> points</p>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <h6>Feedback</h6>
+                                                    <div class="p-3 bg-light rounded" id="feedback-display">
+                                                        No feedback provided.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-primary-custom" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Materials Panel -->
+                            <div class="tab-pane fade" id="student-materials-panel">
+                                <h3>Course Materials</h3>
+                                <div id="student-materials-list">
+                                    <!-- Materials will be added here dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- Messages Panel -->
+                            <div class="tab-pane fade" id="student-messages-panel">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h3>Messages to Teacher</h3>
+                                    <button class="btn btn-primary-custom" id="new-message-btn">
+                                        <i class="bi bi-plus-lg"></i> New Message
+                                    </button>
+                                </div>
+                                <div id="student-messages-container">
+                                    <!-- Messages will be added here dynamically -->
+                                </div>
+
+                                <!-- New Message Modal -->
+                                <div class="modal fade" id="new-message-modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">New Message to Teacher</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="message-subject" class="form-label">Subject</label>
+                                                    <input type="text" class="form-control" id="message-subject" placeholder="Enter subject">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="message-content" class="form-label">Message</label>
+                                                    <textarea class="form-control" id="message-content" rows="5" placeholder="Type your message here"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-primary-custom" id="send-message-btn">Send Message</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Join Class Modal -->
+                <div class="modal fade" id="join-class-modal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Join a Class</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="class-code-input" class="form-label">Enter Class Code</label>
+                                    <input type="text" class="form-control" id="class-code-input" placeholder="e.g. XYZ123">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary-custom" id="join-class-btn">Join Class</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create Class Modal -->
+                <div class="modal fade" id="create-class-modal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Create New Class</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="class-name-input" class="form-label">Class Name</label>
+                                    <input type="text" class="form-control" id="class-name-input" placeholder="e.g. Mathematics 101">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary-custom" id="create-class-confirm-btn">Create Class</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</main>
+
+           
+<footer class="footer ">
+    <div class="container-fluid">
+        <div class="row text-muted">
+            <div class="col-6 text-start">
+                <p class="mb-0">
+                    <a href="#" class="text-muted">
+                        <strong>@PulseCamp</strong>
+                    </a>
+                </p>
+            </div>
+            <div class="col-6 text-end">
+                <ul class="list-inline">
+                    <li class="list-inline-item">
+                        <a href="#" class="text-muted">About Us</a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#" class="text-muted">confidentiality</a>
+                    </li>
+                
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
+
+</div>
+</div>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // This would normally be set based on the logged-in user's role
+            // For demo purposes, we'll default to teacher view
+            const isTeacher = false; // Change to false to see student view
+            
+            // Initialize modals
+            const joinClassModal = new bootstrap.Modal(document.getElementById('join-class-modal'));
+            const createClassModal = new bootstrap.Modal(document.getElementById('create-class-modal'));
+            const gradeModal = new bootstrap.Modal(document.getElementById('grade-modal'));
+            const uploadMaterialModal = new bootstrap.Modal(document.getElementById('upload-material-modal'));
+            const replyMessageModal = new bootstrap.Modal(document.getElementById('reply-message-modal'));
+            const submissionModal = new bootstrap.Modal(document.getElementById('submission-modal'));
+            const gradeViewModal = new bootstrap.Modal(document.getElementById('grade-view-modal'));
+            const newMessageModal = new bootstrap.Modal(document.getElementById('new-message-modal'));
+
+            // Generate a random class code
+            function generateClassCode() {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                let result = '';
+                for (let i = 0; i < 6; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+
+            // Add class button click handler
+            document.getElementById('add-class-btn').addEventListener('click', function() {
+                if (isTeacher) {
+                    createClassModal.show();
+                } else {
+                    joinClassModal.show();
+                }
+            });
+
+            // Add class placeholder click handler (same as button)
+            document.getElementById('add-class-placeholder').addEventListener('click', function() {
+                if (isTeacher) {
+                    createClassModal.show();
+                } else {
+                    joinClassModal.show();
+                }
+            });
+
+            // Create class confirmation
+            document.getElementById('create-class-confirm-btn').addEventListener('click', function() {
+                const className = document.getElementById('class-name-input').value.trim();
+                if (className) {
+                    const classId = 'class-' + Date.now();
+                    const classCode = generateClassCode();
+                    
+                    // Add class to the list
+                    addClassToUI(classId, className, classCode);
+                    
+                    // Reset and hide modal
+                    document.getElementById('class-name-input').value = '';
+                    createClassModal.hide();
+                } else {
+                    alert('Please enter a class name');
+                }
+            });
+
+            // Join class button click
+            document.getElementById('join-class-btn').addEventListener('click', function() {
+                const classCode = document.getElementById('class-code-input').value.trim().toUpperCase();
+                if (classCode) {
+                    // In a real app, this would verify the code with the server
+                    // For demo, we'll just add a sample class
+                    const classId = 'joined-class-' + Date.now();
+                    addClassToUI(classId, 'Joined Class (' + classCode + ')', classCode);
+                    
+                    // Reset and hide modal
+                    document.getElementById('class-code-input').value = '';
+                    joinClassModal.hide();
+                } else {
+                    alert('Please enter a class code');
+                }
+            });
+
+            // Add a class to the UI
+            function addClassToUI(classId, className, classCode) {
+                const classesList = document.getElementById('classes-list');
+                
+                // Remove the placeholder if it's the first class
+                if (classesList.querySelector('#add-class-placeholder')) {
+                    classesList.innerHTML = '';
+                }
+                
+                // Create class card
+                const classCard = document.createElement('div');
+                classCard.className = 'col-md-4 mb-4';
+                classCard.innerHTML = `
+                    <div class="card class-card" data-class-id="${classId}">
+                        <div class="card-body">
+                            <h4 class="card-title">${className}</h4>
+                            <p class="card-text">
+                                <span class="class-code">${classCode}</span>
+                            </p>
+                            <p class="card-text text-muted">Click to view class</p>
+                        </div>
+                    </div>
+                `;
+                
+                classesList.appendChild(classCard);
+                
+                // Add click handler to open class
+                classCard.querySelector('.class-card').addEventListener('click', function() {
+                    openClass(classId, className, classCode);
+                });
+            }
+
+            // Open a class view
+            function openClass(classId, className, classCode) {
+                // Hide classes view and show class detail view
+                document.getElementById('classes-view').classList.add('d-none');
+                document.getElementById('class-detail-view').classList.remove('d-none');
+                
+                // Set class info
+                document.getElementById('class-detail-title').textContent = className;
+                document.getElementById('current-class-code').textContent = classCode;
+                
+                // Show appropriate view based on role
+                if (isTeacher) {
+                    document.getElementById('teacher-class-view').classList.remove('d-none');
+                    document.getElementById('student-class-view').classList.add('d-none');
+                } else {
+                    document.getElementById('teacher-class-view').classList.add('d-none');
+                    document.getElementById('student-class-view').classList.remove('d-none');
+                }
+                
+                // Initialize class content
+                initializeClassContent(classId);
+            }
+
+            // Back to classes button
+            document.getElementById('back-to-classes-btn').addEventListener('click', function() {
+                document.getElementById('class-detail-view').classList.add('d-none');
+                document.getElementById('classes-view').classList.remove('d-none');
+            });
+
+            // Copy class code button
+            document.getElementById('copy-class-code-btn').addEventListener('click', function() {
+                const classCode = document.getElementById('current-class-code').textContent;
+                navigator.clipboard.writeText(classCode).then(function() {
+                    alert('Class code copied to clipboard: ' + classCode);
+                }, function() {
+                    alert('Failed to copy class code');
+                });
+            });
+
+            // Share class code button
+            document.getElementById('share-class-code-btn').addEventListener('click', function() {
+                const classCode = document.getElementById('current-class-code').textContent;
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Join my class',
+                        text: 'Use this code to join my class: ' + classCode,
+                    }).catch(err => {
+                        console.error('Error sharing:', err);
+                    });
+                } else {
+                    alert('Web Share API not supported in your browser. Class code: ' + classCode);
+                }
+            });
+
+            // Initialize class content (assignments, materials, etc.)
+            function initializeClassContent(classId) {
+                if (isTeacher) {
+                    // Teacher view initialization
+                    initializeTeacherView(classId);
+                } else {
+                    // Student view initialization
+                    initializeStudentView(classId);
+                }
+            }
+
+            // Initialize teacher view for a class
+            function initializeTeacherView(classId) {
+                // Clear existing assignments
+                document.getElementById('assignments-list').innerHTML = '';
+                
+                // Add sample assignment (in real app, these would come from the server)
+                addAssignmentToUI('Midterm Project', '2025-05-15', 100, 0, 0);
+                addAssignmentToUI('Weekly Quiz #5', '2025-05-10', 50, 24, 24);
+                
+                // Clear materials list
+                document.getElementById('materials-list').innerHTML = '';
+                
+                // Add sample materials
+                addMaterialToUI('Lecture Notes - Week 5', 'PDF document with lecture slides', 'pdf');
+                addMaterialToUI('Data Analysis Examples', 'Excel spreadsheet with sample data', 'xlsx');
+                
+                // Clear messages
+                document.getElementById('messages-container').innerHTML = '';
+            }
+
+            // Initialize student view for a class
+            function initializeStudentView(classId) {
+                // Clear existing assignments
+                document.getElementById('student-assignments-list').innerHTML = '';
+                
+                // Add sample assignments
+                addStudentAssignmentToUI('Midterm Project', '2025-05-15', 'pending');
+                addStudentAssignmentToUI('Weekly Quiz #5', '2025-05-10', 'graded', 42, 50);
+                
+                // Clear materials list
+                document.getElementById('student-materials-list').innerHTML = '';
+                
+                // Add sample materials
+                addStudentMaterialToUI('Lecture Notes - Week 5', 'PDF document with lecture slides', 'pdf');
+                addStudentMaterialToUI('Data Analysis Examples', 'Excel spreadsheet with sample data', 'xlsx');
+                
+                // Clear messages
+                document.getElementById('student-messages-container').innerHTML = '';
+            }
+
+            // Add assignment to teacher view
+            function addAssignmentToUI(title, dueDate, points, submitted, totalStudents) {
+                const assignmentsList = document.getElementById('assignments-list');
+                const assignmentId = 'assignment-' + Date.now();
+                
+                const assignmentCard = document.createElement('div');
+                assignmentCard.className = 'col-md-6 mb-3';
+                assignmentCard.innerHTML = `
+                    <div class="card assignment-card h-100">
+                        <div class="card-header assignment-header">
+                            <h4>${title}</h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">Due: ${new Date(dueDate).toLocaleDateString()}</p>
+                            <p>Submissions: ${submitted}/${totalStudents}</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="status-badge ${submitted === 0 ? 'status-pending' : submitted === totalStudents ? 'status-graded' : 'status-submitted'}">
+                                ${submitted === 0 ? 'Not Started' : submitted === totalStudents ? 'Graded' : 'Pending'}
+                            </span>
+                            <button class="btn btn-sm btn-accent review-assignment-btn">Review</button>
+                        </div>
+                    </div>
+                `;
+                
+                assignmentsList.appendChild(assignmentCard);
+                
+                // Add click handler to review button
+                assignmentCard.querySelector('.review-assignment-btn').addEventListener('click', function() {
+                    showAssignmentReview(title, dueDate, points);
+                });
+            }
+
+            // Add assignment to student view
+            function addStudentAssignmentToUI(title, dueDate, status, score, maxScore) {
+                const assignmentsList = document.getElementById('student-assignments-list');
+                const assignmentId = 'assignment-' + Date.now();
+                
+                const assignmentCard = document.createElement('div');
+                assignmentCard.className = 'col-md-6 mb-3';
+                assignmentCard.innerHTML = `
+                    <div class="card assignment-card h-100">
+                        <div class="card-header assignment-header">
+                            <h4>${title}</h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">Due: ${new Date(dueDate).toLocaleDateString()}</p>
+                            <p>Status: 
+                                <span class="status-badge ${
+                                    status === 'graded' ? 'status-graded' : 
+                                    status === 'submitted' ? 'status-submitted' : 'status-pending'
+                                }">
+                                    ${status === 'graded' ? 'Graded' : 
+                                      status === 'submitted' ? 'Submitted' : 'Not Submitted'}
+                                </span>
+                                ${status === 'graded' ? `(${score}/${maxScore})` : ''}
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            ${status === 'pending' ? 
+                                `<button class="btn btn-sm btn-primary-custom submit-assignment-btn">Submit</button>` : 
+                                status === 'graded' ?
+                                `<button class="btn btn-sm btn-accent view-grade-btn">View Grade</button>` :
+                                `<button class="btn btn-sm btn-secondary" disabled>Submitted</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+                
+                assignmentsList.appendChild(assignmentCard);
+                
+                // Add click handlers
+                if (status === 'pending') {
+                    assignmentCard.querySelector('.submit-assignment-btn').addEventListener('click', function() {
+                        showSubmissionModal(title, dueDate, 'Assignment description would go here');
+                    });
+                } else if (status === 'graded') {
+                    assignmentCard.querySelector('.view-grade-btn').addEventListener('click', function() {
+                        showGradeView(score, maxScore, 'Good work! Some feedback would go here.');
+                    });
+                }
+            }
+
+            // Show assignment review (teacher view)
+            function showAssignmentReview(title, dueDate, points) {
+                document.getElementById('review-assignment-title').textContent = title;
+                document.getElementById('review-assignment-meta').textContent = `Due: ${new Date(dueDate).toLocaleDateString()} | Total Points: ${points}`;
+                
+                // For demo, we'll just show some sample submissions
+                const tableBody = document.getElementById('submission-table-body');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td>John Doe</td>
+                        <td>-</td>
+                        <td><span class="status-badge status-pending">Not Submitted</span></td>
+                        <td><button class="btn btn-sm btn-secondary" disabled>No Action</button></td>
+                    </tr>
+                    <tr>
+                        <td>Jane Smith</td>
+                        <td>${new Date().toLocaleDateString()}</td>
+                        <td><span class="status-badge status-submitted">Submitted</span></td>
+                        <td><button class="btn btn-sm btn-primary-custom grade-submission-btn">Grade</button></td>
+                    </tr>
+                `;
+                
+                // Show the review panel
+                document.getElementById('assignment-review').classList.remove('d-none');
+                document.getElementById('assignments-list').classList.add('d-none');
+                document.getElementById('create-assignment-btn').classList.add('d-none');
+                
+                // Add click handler to grade button
+                tableBody.querySelector('.grade-submission-btn')?.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const studentName = row.cells[0].textContent;
+                    document.getElementById('grade-student-name').textContent = `${studentName} - ${title}`;
+                    document.getElementById('max-grade').textContent = points;
+                    gradeModal.show();
+                });
+            }
+
+            // Show submission modal (student view)
+            function showSubmissionModal(title, dueDate, description) {
+                document.getElementById('submission-modal-title').textContent = `Submit: ${title}`;
+                document.getElementById('assignment-title-display').textContent = title;
+                document.getElementById('assignment-due-date-display').textContent = `Due: ${new Date(dueDate).toLocaleDateString()}`;
+                document.getElementById('assignment-description-display').textContent = `Description: ${description}`;
+                submissionModal.show();
+            }
+
+            // Show grade view (student view)
+            function showGradeView(score, maxScore, feedback) {
+                document.getElementById('grade-display').textContent = score;
+                document.getElementById('max-points-display').textContent = maxScore;
+                document.getElementById('feedback-display').textContent = feedback;
+                gradeViewModal.show();
+            }
+
+            // Add material to teacher view
+            function addMaterialToUI(title, description, type) {
+                const materialsList = document.getElementById('materials-list');
+                const materialId = 'material-' + Date.now();
+                
+                const icon = type === 'pdf' ? '📄' : 
+                            type === 'xlsx' ? '📊' : 
+                            type === 'docx' ? '📝' : '📁';
+                
+                const materialCard = document.createElement('div');
+                materialCard.className = 'card material-card mb-2';
+                materialCard.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3 fs-4">${icon}</div>
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">${title}</h5>
+                                <p class="text-muted mb-0">${description}</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-danger delete-material-btn">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                materialsList.appendChild(materialCard);
+                
+                // Add click handler to delete button
+                materialCard.querySelector('.delete-material-btn').addEventListener('click', function() {
+                    if (confirm('Are you sure you want to delete this material?')) {
+                        materialCard.remove();
+                    }
+                });
+            }
+
+            // Add material to student view
+            function addStudentMaterialToUI(title, description, type) {
+                const materialsList = document.getElementById('student-materials-list');
+                const materialId = 'material-' + Date.now();
+                
+                const icon = type === 'pdf' ? '📄' : 
+                            type === 'xlsx' ? '📊' : 
+                            type === 'docx' ? '📝' : '📁';
+                
+                const materialCard = document.createElement('div');
+                materialCard.className = 'card material-card mb-2';
+                materialCard.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3 fs-4">${icon}</div>
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">${title}</h5>
+                                <p class="text-muted mb-0">${description}</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-primary-custom download-material-btn">
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                materialsList.appendChild(materialCard);
+                
+                // Add click handler to download button
+                materialCard.querySelector('.download-material-btn').addEventListener('click', function() {
+                    alert(`Would download ${title} (${type})`);
+                });
+            }
+
+            // Assignment management (teacher)
+            const createAssignmentBtn = document.getElementById('create-assignment-btn');
+            const cancelAssignmentBtn = document.getElementById('cancel-assignment-btn');
+            const saveAssignmentBtn = document.getElementById('save-assignment-btn');
+            
+            createAssignmentBtn?.addEventListener('click', function() {
+                document.getElementById('create-assignment-form').classList.remove('d-none');
+                document.getElementById('assignments-list').classList.add('d-none');
+                createAssignmentBtn.classList.add('d-none');
+            });
+            
+            cancelAssignmentBtn?.addEventListener('click', function() {
+                document.getElementById('create-assignment-form').classList.add('d-none');
+                document.getElementById('assignments-list').classList.remove('d-none');
+                createAssignmentBtn.classList.remove('d-none');
+            });
+            
+            saveAssignmentBtn?.addEventListener('click', function() {
+                const title = document.getElementById('assignment-title').value.trim();
+                const description = document.getElementById('assignment-description').value.trim();
+                const dueDate = document.getElementById('assignment-due-date').value;
+                const points = document.getElementById('assignment-points').value;
+                
+                if (title && dueDate) {
+                    // Create assignment card
+                    addAssignmentToUI(title, dueDate, points, 0, 0);
+                    
+                    // Reset form
+                    document.getElementById('assignment-title').value = '';
+                    document.getElementById('assignment-description').value = '';
+                    document.getElementById('assignment-due-date').value = '';
+                    document.getElementById('assignment-points').value = '100';
+                    
+                    // Hide form and show list
+                    document.getElementById('create-assignment-form').classList.add('d-none');
+                    document.getElementById('assignments-list').classList.remove('d-none');
+                    createAssignmentBtn.classList.remove('d-none');
+                } else {
+                    alert('Please fill in all required fields (title and due date)');
+                }
+            });
+            
+            document.getElementById('back-from-review-btn')?.addEventListener('click', function() {
+                document.getElementById('assignment-review').classList.add('d-none');
+                document.getElementById('assignments-list').classList.remove('d-none');
+                createAssignmentBtn.classList.remove('d-none');
+            });
+            
+            // Grade submission modal
+            document.getElementById('submit-grade-btn')?.addEventListener('click', function() {
+                const grade = document.getElementById('grade-input').value;
+                const feedback = document.getElementById('feedback-input').value;
+                
+                if (grade) {
+                    alert(`Grade ${grade} with feedback would be saved.`);
+                    gradeModal.hide();
+                } else {
+                    alert('Please enter a grade');
+                }
+            });
+            
+            // Material management
+            const uploadMaterialBtn = document.getElementById('upload-material-btn');
+            
+            uploadMaterialBtn?.addEventListener('click', function() {
+                uploadMaterialModal.show();
+            });
+            
+            document.getElementById('save-material-btn')?.addEventListener('click', function() {
+                const title = document.getElementById('material-title').value.trim();
+                const description = document.getElementById('material-description').value.trim();
+                const file = document.getElementById('material-file').files[0];
+                
+                if (title && (description || file)) {
+                    // Determine file type
+                    let type = 'file';
+                    if (file) {
+                        const ext = file.name.split('.').pop().toLowerCase();
+                        if (['pdf', 'xlsx', 'docx', 'ppt', 'pptx'].includes(ext)) {
+                            type = ext;
+                        }
+                    }
+                    
+                    // Add material to UI
+                    addMaterialToUI(title, description || 'No description', type);
+                    
+                    // Reset form
+                    document.getElementById('material-title').value = '';
+                    document.getElementById('material-description').value = '';
+                    document.getElementById('material-file').value = '';
+                    
+                    // Hide modal
+                    uploadMaterialModal.hide();
+                } else {
+                    alert('Please provide at least a title and either a description or file');
+                }
+            });
+            
+            // Message management
+            const newMessageBtn = document.getElementById('new-message-btn');
+            
+            newMessageBtn?.addEventListener('click', function() {
+                newMessageModal.show();
+            });
+            
+            document.getElementById('send-message-btn')?.addEventListener('click', function() {
+                const subject = document.getElementById('message-subject').value.trim();
+                const content = document.getElementById('message-content').value.trim();
+                
+                if (subject && content) {
+                    // Create message card
+                    const messageCard = document.createElement('div');
+                    messageCard.className = 'card message-card mb-2';
+                    messageCard.innerHTML = `
+                        <div class="card-body">
+                            <h5 class="mb-2">Subject: ${subject}</h5>
+                            <p class="mb-2">${content}</p>
+                            <p class="text-muted mb-0">Status: Pending reply</p>
+                        </div>
+                    `;
+                    
+                    document.getElementById('student-messages-container').appendChild(messageCard);
+                    
+                    // Reset form
+                    document.getElementById('message-subject').value = '';
+                    document.getElementById('message-content').value = '';
+                    
+                    // Hide modal
+                    newMessageModal.hide();
+                } else {
+                    alert('Please fill in both subject and message content');
+                }
+            });
+            
+            // Student assignment submission
+            document.getElementById('submit-assignment-btn')?.addEventListener('click', function() {
+                const submissionText = document.getElementById('submission-text').value.trim();
+                const submissionFile = document.getElementById('submission-file').files[0];
+                
+                if (submissionText || submissionFile) {
+                    alert('Assignment would be submitted to the teacher.');
+                    submissionModal.hide();
+                    
+                    // In a real app, this would update the assignment status
+                } else {
+                    alert('Please provide either text or file submission');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
