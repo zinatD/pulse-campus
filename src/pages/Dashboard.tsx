@@ -9,6 +9,7 @@ import supabase from '../lib/supabaseClient'; // Use the shared client
 // Import components
 import WelcomeCard from '../components/Dashboard/WelcomeCard';
 import StreakCard from '../components/Dashboard/StreakCard';
+import AttendanceCard from '../components/Dashboard/AttendanceCard';
 import StudyChart from '../components/Dashboard/StudyChart';
 import SubjectsChart from '../components/Dashboard/SubjectsChart';
 import QuickNotes from '../components/Dashboard/QuickNotes';
@@ -448,9 +449,10 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <WelcomeCard />
           <StreakCard />
+          <AttendanceCard />
         </div>
 
         <div className="mb-6">
@@ -501,9 +503,10 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <WelcomeCard />
           <StreakCard />
+          <AttendanceCard />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
