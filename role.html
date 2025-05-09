@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha384-tViUnnbYAV00FLIhhi3v/dWt3Jxw4gZQcNoSCxCIFNJVCx7/D55/wXsrNIRANwdD" crossorigin="anonymous">
+    <title>Complete Your Profile</title>
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-light: #81c784;
+            --primary-lighter: #e8f5e9;
+            --accent-color: #ffb74d;
+            --pastel-pink: #ffd6e0;
+            --pastel-blue: #c0e6ff;
+            --pastel-purple: #e6d3ff;
+            --pastel-green: #d0f0c0;
+            --pastel-yellow: #fff4c0;
+        }
+        
+        body {
+            background-color: var(--primary-lighter);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card {
+            border-radius: 15px;
+            border: none;
+            overflow: hidden;
+        }
+        
+        .form-title h2 {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .form-title h3 {
+            color: var(--primary-light);
+            font-weight: 500;
+        }
+        
+        .role-option {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background-color: white;
+        }
+        
+        .role-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .role-option.selected {
+            border-color: var(--primary-color);
+            background-color: var(--primary-lighter);
+        }
+        
+        .role-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .btn-custom-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 25px;
+            padding: 8px 25px;
+        }
+        
+        .btn-custom-primary:hover {
+            background-color: var(--primary-light);
+            color: white;
+        }
+        
+        .btn-custom-secondary {
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 25px;
+            padding: 8px 25px;
+        }
+        
+        .btn-custom-secondary:hover {
+            background-color: #ffa726;
+            color: white;
+        }
+        
+        .progress-bar {
+            background-color: var(--primary-color);
+        }
+        
+        .progress {
+            height: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .form-section {
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .custom-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .custom-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Role-specific colors */
+        .student-bg { background-color: var(--pastel-blue); }
+        .professor-bg { background-color: var(--pastel-purple); }
+        .other-bg { background-color: var(--pastel-green); }
+    </style>
+</head>
+<body>
+    <section class="w-100 py-5">
+        <div class="container">
+            <div class="row justify-content-center align-items-center">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="signin text-center pt-0 mb-4">
+                        <div class="form-title">
+                            <h2>Complete Your Profile</h2>
+                            <h3>Pulse Camp</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="progress mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 33%;" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    
+                    <div class="card border-0 shadow">
+                        <div class="card-body p-4">
+                            <form id="profileForm">
+                                <!-- Role Selection Section -->
+                                <div class="form-section active" id="roleSection">
+                                    <h4 class="text-center mb-4">What best describes you?</h4>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <div class="role-option text-center student-bg" onclick="selectRole('student', this)">
+                                                <i class="bi bi-mortarboard-fill role-icon"></i>
+                                                <h5>Student</h5>
+                                                <p class="small">I'm currently enrolled in an educational institution</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="role-option text-center professor-bg" onclick="selectRole('professor', this)">
+                                                <i class="bi bi-person-vcard-fill role-icon"></i>
+                                                <h5>Professor</h5>
+                                                <p class="small">I teach at an educational institution</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="role-option text-center other-bg" onclick="selectRole('other', this)">
+                                                <i class="bi bi-book-fill role-icon"></i>
+                                                <h5>Other</h5>
+                                                <p class="small">I'm here to learn independently</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <input type="hidden" id="userRole" name="role">
+                                    
+                                    <div class="text-center mt-4">
+                                        <button type="button" class="btn btn-custom-primary" onclick="nextSection('roleSection', 'educationSection')">
+                                            Continue <i class="bi bi-arrow-right" style="margin-left:5px;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Education Level Section -->
+                                <div class="form-section" id="educationSection">
+                                    <h4 class="text-center mb-4">What's your education level?</h4>
+                                    
+                                    <div class="row" id="educationOptions">
+                                        <!-- Options will be populated based on role selection -->
+                                    </div>
+                                    
+                                    <input type="hidden" id="educationLevel" name="education_level">
+                                    
+                                    <div class="text-center mt-4">
+                                        <button type="button" class="btn btn-custom-secondary me-2" onclick="prevSection('educationSection', 'roleSection')">
+                                            <i class="bi bi-arrow-left" style="margin-right:5px;"></i> Back
+                                        </button>
+                                        <button type="button" class="btn btn-custom-primary" onclick="nextSection('educationSection', 'interestsSection')">
+                                            Continue <i class="bi bi-arrow-right" style="margin-left:5px;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Interests Section -->
+                                <div class="form-section" id="interestsSection">
+                                    <h4 class="text-center mb-4">What are you interested in?</h4>
+                                    
+                         
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Learning Goals</label>
+                                        <textarea class="form-control" id="learningGoals" name="learning_goals" rows="3" placeholder="What do you hope to achieve?"></textarea>
+                                    </div>
+                                    
+                                    <div class="text-center mt-4">
+                                        <button type="button" class="btn btn-custom-secondary me-2" onclick="prevSection('interestsSection', 'educationSection')">
+                                            <i class="bi bi-arrow-left" style="margin-right:5px;"></i> Back
+                                        </button>
+                                        <button type="submit" class="btn btn-custom-primary">
+                                            Complete Profile <i class="bi bi-check-circle" style="margin-left:5px;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    
+    <script>
+        // Role selection
+        function selectRole(role, element) {
+            // Remove selected class from all options
+            document.querySelectorAll('.role-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            element.classList.add('selected');
+            
+            // Set the hidden input value
+            document.getElementById('userRole').value = role;
+            
+            // Prepare education level options based on role
+            prepareEducationOptions(role);
+        }
+        
+        // Prepare education level options based on selected role
+        function prepareEducationOptions(role) {
+            const educationOptions = document.getElementById('educationOptions');
+            let optionsHtml = '';
+            
+            if (role === 'student') {
+                optionsHtml = `
+                    <div class="col-md-6 mb-3">
+                        <div class="role-option text-center" onclick="selectEducationLevel('middle_school', this)">
+                            <i class="bi bi-book role-icon"></i>
+                            <h5>Middle School</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="role-option text-center" onclick="selectEducationLevel('high_school', this)">
+                            <i class="bi bi-mortarboard role-icon"></i>
+                            <h5>High School</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="role-option text-center" onclick="selectEducationLevel('undergraduate', this)">
+                            <i class="bi bi-building role-icon"></i>
+                            <h5>University (Undergrad)</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="role-option text-center" onclick="selectEducationLevel('graduate', this)">
+                            <i class="bi bi-award role-icon"></i>
+                            <h5>University (Grad School)</h5>
+                        </div>
+                    </div>
+                `;
+            } else if (role === 'professor') {
+                optionsHtml = `
+                    <div class="col-md-4 mb-3">
+                        <div class="role-option text-center" onclick="selectEducationLevel('high_school', this)">
+                            <i class="bi bi-mortarboard role-icon"></i>
+                            <h5>High School</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="role-option text-center" onclick="selectEducationLevel('college', this)">
+                            <i class="bi bi-building role-icon"></i>
+                            <h5>College</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="role-option text-center" onclick="selectEducationLevel('university', this)">
+                            <i class="bi bi-award role-icon"></i>
+                            <h5>University</h5>
+                        </div>
+                    </div>
+                `;
+            } else {
+                optionsHtml = `
+                    <div class="col-md-6 mb-3">
+                        <div class="role-option text-center" onclick="selectEducationLevel('self_taught', this)">
+                            <i class="bi bi-lightbulb role-icon"></i>
+                            <h5>Self-Taught</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="role-option text-center" onclick="selectEducationLevel('professional', this)">
+                            <i class="bi bi-briefcase role-icon"></i>
+                            <h5>Professional Development</h5>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            educationOptions.innerHTML = optionsHtml;
+        }
+        
+        // Education level selection
+        function selectEducationLevel(level, element) {
+            // Remove selected class from all options
+            document.querySelectorAll('#educationOptions .role-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            element.classList.add('selected');
+            
+            // Set the hidden input value
+            document.getElementById('educationLevel').value = level;
+        }
+        
+        // Navigation between sections
+        function nextSection(currentId, nextId) {
+            // Validate current section before proceeding
+            if (currentId === 'roleSection' && !document.getElementById('userRole').value) {
+                alert('Please select your role');
+                return;
+            }
+            
+            if (currentId === 'educationSection' && !document.getElementById('educationLevel').value) {
+                alert('Please select your education level');
+                return;
+            }
+            
+            // Update progress bar
+            const progressBar = document.querySelector('.progress-bar');
+            if (nextId === 'educationSection') {
+                progressBar.style.width = '66%';
+                progressBar.setAttribute('aria-valuenow', '66');
+            } else if (nextId === 'interestsSection') {
+                progressBar.style.width = '100%';
+                progressBar.setAttribute('aria-valuenow', '100');
+            }
+            
+            // Switch sections
+            document.getElementById(currentId).classList.remove('active');
+            document.getElementById(nextId).classList.add('active');
+        }
+        
+        function prevSection(currentId, prevId) {
+            // Update progress bar
+            const progressBar = document.querySelector('.progress-bar');
+            if (prevId === 'roleSection') {
+                progressBar.style.width = '33%';
+                progressBar.setAttribute('aria-valuenow', '33');
+            } else if (prevId === 'educationSection') {
+                progressBar.style.width = '66%';
+                progressBar.setAttribute('aria-valuenow', '66');
+            }
+            
+            // Switch sections
+            document.getElementById(currentId).classList.remove('active');
+            document.getElementById(prevId).classList.add('active');
+        }
+        
+        // Form submission
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate interests (max 3)
+            const interestsSelect = document.getElementById('interestsSelect');
+            if (interestsSelect.selectedOptions.length > 3) {
+                alert('Please select no more than 3 subjects');
+                return;
+            }
+            
+            // Here you would typically send the form data to your server
+            alert('Profile completed successfully! Redirecting...');
+            
+            // For demo purposes, we'll just log the form data
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            data.interests = Array.from(interestsSelect.selectedOptions).map(opt => opt.value);
+            console.log('Form data:', data);
+            
+            // In a real application, you would redirect or show a success message
+            // window.location.href = 'dashboard.html';
+        });
+    </script>
+</body>
+</html>
