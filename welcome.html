@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha384-tViUnnbYAV00FLIhhi3v/dWt3Jxw4gZQcNoSCxCIFNJVCx7/D55/wXsrNIRANwdD" crossorigin="anonymous">
+    <title>Welcome to Pulse Camp</title>
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-light: #81c784;
+            --primary-lighter: #e8f5e9;
+            --accent-color: #ffb74d;
+            --pastel-pink: #ffd6e0;
+            --pastel-blue: #c0e6ff;
+            --pastel-purple: #e6d3ff;
+            --pastel-green: #d0f0c0;
+            --pastel-yellow: #fff4c0;
+        }
+        
+        body {
+            background-color: var(--primary-lighter);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .welcome-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .welcome-card {
+            border-radius: 15px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+            background-color: white;
+        }
+        
+        .welcome-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .welcome-body {
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .welcome-icon {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+        
+        .btn-custom-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 25px;
+            padding: 10px 30px;
+            margin-top: 20px;
+        }
+        
+        .btn-custom-primary:hover {
+            background-color: var(--primary-light);
+            color: white;
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            opacity: 0;
+            animation: confetti-fall 5s linear infinite;
+            z-index: 1;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .study-tips {
+            background-color: var(--primary-lighter);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="welcome-card">
+                        <div class="welcome-header">
+                            <h1>Welcome to Pulse Camp!</h1>
+                        </div>
+                        <div class="welcome-body">
+                            <i class="bi bi-emoji-smile-fill welcome-icon"></i>
+                            <h3>We're thrilled to have you join our learning community!</h3>
+                            <p>Your educational journey starts now. Whether you're here to learn, teach, or explore, we hope you'll find everything you need to succeed.</p>
+                            
+                            <div class="study-tips">
+                                <h5><i class="bi bi-lightbulb-fill" style="color: var(--accent-color);"></i> Study Tip:</h5>
+                                <p id="studyTip">Consistent daily practice is more effective than occasional long sessions.</p>
+                            </div>
+                            
+                            <a href="#" class="btn btn-custom-primary" id="exploreBtn">
+                               Get Started <i class="bi bi-arrow-right" style="margin-left:5px;"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confetti elements will be added here by JavaScript -->
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    
+    <script>
+        // Create confetti
+        function createConfetti() {
+            const colors = [
+                '#2e7d32', // primary green
+                '#81c784', // primary light
+                '#ffb74d', // accent orange
+                '#c0e6ff', // pastel blue
+                '#e6d3ff'  // pastel purple
+            ];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                // Random properties
+                const size = Math.random() * 10 + 5;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const left = Math.random() * 100;
+                const animationDuration = Math.random() * 3 + 2;
+                const delay = Math.random() * 5;
+                
+                confetti.style.width = `${size}px`;
+                confetti.style.height = `${size}px`;
+                confetti.style.backgroundColor = color;
+                confetti.style.left = `${left}vw`;
+                confetti.style.animationDuration = `${animationDuration}s`;
+                confetti.style.animationDelay = `${delay}s`;
+                
+                document.body.appendChild(confetti);
+            }
+        }
+        
+        // Study tips rotation
+        const studyTips = [
+            "Take regular breaks using the Pomodoro technique (25 min work, 5 min break).",
+            "Active recall (testing yourself) is more effective than passive review.",
+            "Teach what you've learned to someone else to reinforce your understanding.",
+            "Mix different subjects/topics in a single study session for better retention.",
+            "Connect new information to what you already know to create stronger memories."
+        ];
+        
+        function rotateStudyTip() {
+            const tipElement = document.getElementById('studyTip');
+            let currentIndex = 0;
+            
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % studyTips.length;
+                tipElement.style.opacity = 0;
+                
+                setTimeout(() => {
+                    tipElement.textContent = studyTips[currentIndex];
+                    tipElement.style.opacity = 1;
+                }, 500);
+            }, 5000);
+        }
+        
+        // Initialize everything when page loads
+        window.onload = function() {
+            createConfetti();
+            rotateStudyTip();
+            
+            // Button click handler
+            document.getElementById('exploreBtn').addEventListener('click', function() {
+                alert('Redirecting to courses page...');
+                // In a real app, you would redirect to the courses page
+                // window.location.href = 'courses.html';
+            });
+        };
+    </script>
+</body>
+</html>
