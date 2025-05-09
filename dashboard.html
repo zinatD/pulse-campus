@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Pulse Camp</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/style.css">
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-light: #81c784;
+            --primary-lighter: #e8f5e9;
+            --accent-color: #ffb74d;
+            --pastel-pink: #ffd6e0;
+            --pastel-blue: #c0e6ff;
+            --pastel-purple: #e6d3ff;
+            --pastel-green: #d0f0c0;
+            --pastel-yellow: #fff4c0;
+            --text-dark: #333;
+            --text-light: #666;
+            --border-color: #ddd;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: var(--text-dark);
+        }
+
+        .main-content {
+            padding: 2rem;
+            min-height: calc(100vh - 120px);
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+            color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .welcome-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+
+        .streak-card {
+            background-color: white;
+            border-radius: 10px;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .streak-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+
+        .schedule-card {
+            background-color: white;
+            border-radius: 10px;
+        }
+
+        .schedule-item {
+            border-left: 3px solid var(--primary-color);
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .schedule-time {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .action-card {
+            background-color: white;
+            border-radius: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-align: center;
+            padding: 1.5rem;
+            height: 100%;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .sticker {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.9;
+            z-index: 1;
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .study-report {
+            background: linear-gradient(135deg, var(--pastel-blue), var(--pastel-purple));
+            color: var(--text-dark);
+        }
+
+        .study-room {
+            background: linear-gradient(135deg, var(--pastel-green), var(--pastel-yellow));
+            color: var(--text-dark);
+        }
+
+        .quote-text {
+            font-style: italic;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .quote-author {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <aside id="sidebar" class="js-sidebar">
+            <!-- Content For Sidebar -->
+            <div class="h-100">
+                <div class="sidebar-logo">
+                    <a href="#"><i class="bi bi-command" style="color:white; margin-right:5px;"></i>Pulse Camp</a>
+                </div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-header">
+                       Pages
+                    </li>
+                    <li class="sidebar-item active">
+                        <a href="/dashboard.html" class="sidebar-link">
+                            <i class="bi bi-sliders2-vertical" style="margin-right:5px;"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">
+                            <i class="bi bi-textarea-t" style="margin-right:5px;"></i>GPA tracker
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">
+                            <i class="bi bi-person-gear" style="margin-right:5px;"></i>Study Room
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">
+                            <i class="bi bi-textarea-resize" style="margin-right:5px;"></i>My Courses
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">
+                            <i class="bi bi-card-text" style="margin-right:5px;"></i>Scheduler
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+        <div class="main">
+            <nav class="navbar navbar-expand px-3">
+                <button class="btn" id="sidebar-toggle" type="button" style="color:#002E79;">
+                    <i class="bi bi-text-left" style="font-size: 1.5rem;"></i> 
+                </button>
+                
+                <div class="navbar-collapse navbar">
+                    <ul class="navbar-nav">
+                        <li class="nav-item me-3">
+                            <a href="#" class="nav-icon pe-md-0">
+                                <i class="bi bi-bell" style="font-size: 1.2rem; color: #255c4c; margin-right:5px;"></i>
+                                <span class="badge bg-danger" id="notification-count"></span>
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item me-3 dropdown">
+                            <a href="#" data-bs-toggle="dropdown" class="nav-icon pe-md-0">
+                                <i class="bi bi-person-circle" style="font-size: 1.2rem; color: #255c4c;margin-right:5px;"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a href="#" class="dropdown-item" style="font-size:0.5rem; font-weight:400;">Profile</a>
+                                <a href="#" class="dropdown-item">Settings</a>
+                                <a href="/front/signin.html" class="dropdown-item">Log Out</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        
+            <main class="content px-3 py-2">
+                <div class="container-fluid main-content">
+                    <!-- Welcome Section with Quote -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card welcome-card shadow-sm p-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8 position-relative">  
+                                        <h1 class="display-5 fw-bold mb-3">Welcome back, <span id="user-name">Alex</span>!</h1>
+                                        <div class="quote-box mb-3">
+                                            <p class="quote-text" id="daily-quote">"Education is the most powerful weapon which you can use to change the world."</p>
+                                            <p class="quote-author" id="quote-author">— Nelson Mandela</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Streak and Schedule Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="card streak-card shadow-sm h-100">
+                                <div class="position-relative">
+                                    <!-- Special study streak emoji composition -->
+                    
+                                    <h4 class="mb-3">Study Streak</h4>
+                                    <div class="streak-number animate__animated animate__pulse animate__infinite" id="streak-count">7</div>
+                                    <p class="mb-0">days in a row! 🌟</p>
+                                    <small class="text-muted">You're on fire! 🔥</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card schedule-card shadow-sm p-4 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4 class="mb-0">Today's Schedule</h4>
+                                    <a href="#" class="btn btn-sm btn-primary-custom">View All</a>
+                                </div>
+                                
+                                <div id="today-schedule">
+                                    <!-- Schedule items will be loaded here -->
+                                    <div class="schedule-item">
+                                        <div class="d-flex justify-content-between">
+                                            <h5 class="mb-1">Mathematics 101</h5>
+                                            <span class="schedule-time">09:00 - 10:30</span>
+                                        </div>
+                                        <p class="mb-0 text-muted">Room 204 - Linear Algebra</p>
+                                    </div>
+                                    
+                                    <div class="schedule-item">
+                                        <div class="d-flex justify-content-between">
+                                            <h5 class="mb-1">Computer Science</h5>
+                                            <span class="schedule-time">13:00 - 14:30</span>
+                                        </div>
+                                        <p class="mb-0 text-muted">Room 312 - Data Structures</p>
+                                    </div>
+                                    
+                                    <div class="text-center py-3" id="no-schedule" style="display: none;">
+                                        <i class="bi bi-calendar-x fs-1 text-muted mb-2"></i>
+                                        <p class="mb-0 text-muted">No classes scheduled for today</p>
+                                        <a href="#" class="btn btn-sm btn-primary-custom mt-2">Plan your week</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Section -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card action-card shadow-sm study-report">
+                                <div class="position-relative">
+                                    <!-- Special report emoji -->
+                                    <div class="sticker floating" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4c8.svg'); top: -20px; right: -10px;"></div>
+                                    
+                                   
+                                    <i class="bi bi-graph-up action-icon"></i>
+                                    <h5>Weekly Study Report</h5>
+                                    <p class="mb-0 small">Get insights into your study patterns</p>
+                                    <button class="btn btn-sm btn-primary-custom mt-3">View Report 🌱</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card action-card shadow-sm study-room">
+                                <div class="position-relative">
+                                    <!-- Special study room emoji -->
+                                    <div class="sticker floating" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4bb.svg'); top: -20px; right: -10px;"></div>
+                                    <div class="sticker" style="background-image: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f33f.svg'); bottom: -10px; left: -10px; width: 60px; height: 60px;"></div>
+                                    <i class="bi bi-lamp action-icon"></i>
+                                    <h5>Study Room</h5>
+                                    <p class="mb-0 small">Focus mode with friends</p>
+                                    <button class="btn btn-sm btn-primary-custom mt-3">Start Studying 📚</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row text-muted">
+                        <div class="col-6 text-start">
+                            <p class="mb-0">
+                                <a href="#" class="text-muted">
+                                    <strong>@PulseCamp</strong>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <ul class="list-inline">
+                                <li class="list-inline-item">
+                                    <a href="#" class="text-muted">About Us</a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#" class="text-muted">Confidentiality</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch user data (simulated)
+            fetchUserData();
+            
+            // Fetch daily quote (simulated)
+            fetchDailyQuote();
+            
+            // Fetch schedule (simulated)
+            fetchSchedule();
+            
+            // Simulate fetching user data
+            function fetchUserData() {
+                // In a real app, this would come from your backend
+                setTimeout(() => {
+                    document.getElementById('user-name').textContent = 'Alex';
+                    document.getElementById('streak-count').textContent = '7';
+                }, 500);
+            }
+            
+            // Simulate fetching daily quote
+            function fetchDailyQuote() {
+                const quotes = [
+                    {
+                        text: "Education is the most powerful weapon which you can use to change the world.",
+                        author: "Nelson Mandela"
+                    },
+                    {
+                        text: "The beautiful thing about learning is that no one can take it away from you.",
+                        author: "B.B. King"
+                    },
+                    {
+                        text: "Success is the sum of small efforts, repeated day in and day out.",
+                        author: "Robert Collier"
+                    },
+                    {
+                        text: "The expert in anything was once a beginner.",
+                        author: "Helen Hayes"
+                    },
+                    {
+                        text: "Learning is like rowing upstream: not to advance is to drop back.",
+                        author: "Chinese Proverb"
+                    },
+                    {
+                        text: "The more that you read, the more things you will know. The more that you learn, the more places you'll go.",
+                        author: "Dr. Seuss"
+                    }
+                ];
+                
+                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                document.getElementById('daily-quote').textContent = `"${randomQuote.text}"`;
+                document.getElementById('quote-author').textContent = `— ${randomQuote.author}`;
+            }
+            
+            // Simulate fetching schedule
+            function fetchSchedule() {
+                // In a real app, this would come from your scheduler page
+                // For demo, we'll randomly show "no schedule" sometimes
+                if (Math.random() > 0.3) {
+                    document.getElementById('no-schedule').style.display = 'block';
+                    document.querySelectorAll('.schedule-item').forEach(item => {
+                        item.style.display = 'none';
+                    });
+                } else {
+                    document.getElementById('no-schedule').style.display = 'none';
+                    document.querySelectorAll('.schedule-item').forEach(item => {
+                        item.style.display = 'block';
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
