@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import SearchBox from '../components/SearchBox';
 import QuizCreator from '../components/Quiz/QuizCreator';
-import QuizTaker from '../components/Quiz/QuizTaker';
 
 const Quiz = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -26,10 +24,7 @@ const Quiz = () => {
             <SearchBox />
           </div>
           
-          <Routes>
-            <Route path="/" element={<QuizCreator />} />
-            <Route path="/take" element={<QuizTaker />} />
-          </Routes>
+          <QuizCreator />
         </main>
 
         <footer className="bg-white py-4 px-6">

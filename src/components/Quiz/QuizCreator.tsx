@@ -20,7 +20,10 @@ const QuizCreator = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      console.log('Creating quiz with params:', quizParams);
       await createQuiz(quizParams.topic, quizParams.difficulty, quizParams.questionCount);
+      console.log('Quiz created successfully, navigating to:', '/quiz/take');
+      // Try using absolute path to ensure correct navigation
       navigate('/quiz/take');
     } catch (err) {
       console.error('Error creating quiz:', err);

@@ -6,12 +6,15 @@ import AlertMessage from './components/AlertMessage';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingScreen from './components/LoadingScreen';
 import ProtectedRoute from './components/ProtectedRoute';
+import Notes from './pages/Notes';
 
 // Lazy load components for better performance
 const Attendance = lazy(() => import('./components/Attendance'));
 const Login = lazy(() => import('./pages/Auth/Login'));
+const SelectRole = lazy(() => import('./pages/Auth/SelectRole'));
 const Register = lazy(() => import('./pages/Auth/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Welcome = lazy(() => import('./pages/Auth/Welcome'));
 const Scheduler = lazy(() => import('./pages/Scheduler'));
 const MyCourses = lazy(() => import('./pages/MyCourses'));
 const Courses = lazy(() => import('./pages/Courses'));
@@ -19,7 +22,9 @@ const GPATracker = lazy(() => import('./pages/GPATracker'));
 const StudyRoom = lazy(() => import('./components/StudyRoom/StudyRoom'));
 const Assignments = lazy(() => import('./pages/Assignments'));
 const StudyGroups = lazy(() => import('./pages/StudyGroups'));
-const Quiz = lazy(() => import('./pages/Quiz')); // Add Quiz import
+// Make sure this import uses the correct casing
+const Quiz = lazy(() => import('./pages/Quiz'));
+const QuizTake = lazy(() => import('./pages/Quiz/Take'));
 
 function App() {
   return (
@@ -50,12 +55,31 @@ const AppRoutes = () => {
               <Register />
             </PublicRoute>
           } />
+
+          {/* Update SelectRole route to allow registration data */}
+          <Route path="/select" element={
+            <PublicRoute>
+              <SelectRole />
+            </PublicRoute>
+          } />
           
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           } />
+
+<Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+
+        <Route path="/notes" element={
+                    <ProtectedRoute>
+                      <Notes />
+                    </ProtectedRoute>
+                  } />
           
           <Route path="/scheduler" element={
             <ProtectedRoute>
@@ -99,22 +123,16 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } />
 
-          <Route path="/quiz" element={
-            <ProtectedRoute>
-              <Quiz />
-            </ProtectedRoute>
-          } />
+          {/* Update Quiz routes to handle nested paths */}
+          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/quiz/take" element={<QuizTake />} />
+
+          {/* Fix the duplicate attendance route */}
           <Route path="/attendance" element={
             <ProtectedRoute>
               <Attendance />
             </ProtectedRoute>
           } />
-
-          <Route path="/attendance" element={
-  <ProtectedRoute>
-    <Attendance />
-  </ProtectedRoute>
-} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

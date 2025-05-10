@@ -7,7 +7,7 @@ import StudyChart from '../StudyChart';
 import QuickNotes from '../QuickNotes';
 import UpcomingTasks from '../UpcomingTasks';
 
-const TeacherDashboard = () => {
+const Student = () => {
   const { profile } = useAuth();
   const [quote, setQuote] = useState({ text: '', author: '' });
   
@@ -58,7 +58,7 @@ const TeacherDashboard = () => {
                }}>
             <div className="row align-items-center">
               <div className="col-md-8 position-relative">
-                <h1 className="text-3xl font-bold mb-3">Welcome back, {profile?.name || profile?.full_name || 'Teacher'}!</h1>
+                <h1 className="text-3xl font-bold mb-3">Welcome back, {profile?.name || profile?.full_name || 'xx'}!</h1>
                 <div className="quote-box mb-3">
                   <p className="quote-text italic text-white/90 text-lg mb-1">"{quote.text}"</p>
                   <p className="quote-author text-sm text-white/80">— {quote.author}</p>
@@ -93,7 +93,7 @@ const TeacherDashboard = () => {
           <div className="absolute top-0 right-0 -mt-5 -mr-2 text-4xl animate-bounce">📊</div>
           <div className="flex flex-col items-center text-center">
             <BsGraphUp className="text-4xl mb-4 text-primary" />
-            <h5 className="text-lg font-medium mb-2">Weekly Teaching Report</h5>
+            <h5 className="text-lg font-medium mb-2">Weekly Studying Report</h5>
             <p className="text-sm text-gray-600 mb-4">Get insights into your teaching patterns and student engagement</p>
             <button 
               onClick={() => alert("Coming soon")}
@@ -102,25 +102,25 @@ const TeacherDashboard = () => {
             </button>
           </div>
         </div>
-        
         <UpcomingTasks />
-      
+
+       
       </div>
 
 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-       
+      <QuickNotes />
         <div className="bg-gradient-to-br from-green-100 to-yellow-100 rounded-xl shadow-md p-5 relative">
           <div className="absolute top-0 right-0 -mt-5 -mr-2 text-4xl animate-bounce">💡</div>
           <div className="flex flex-col items-center text-center">
             <BsLamp className="text-4xl mb-4 text-primary" />
-            <h5 className="text-lg font-medium mb-2">Virtual Classroom</h5>
-            <p className="text-sm text-gray-600 mb-4">Start an interactive session with your students</p>
+            <h5 className="text-lg font-medium mb-2">Study Room</h5>
+            <p className="text-sm text-gray-600 mb-4">Start an interactive session</p>
             <button 
               onClick={() => alert("Coming soon")}
               className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-              Start Teaching 📚
+              Get Started 📚
             </button>
           </div>
         </div>
@@ -129,4 +129,4 @@ const TeacherDashboard = () => {
   );
 };
 
-export default TeacherDashboard;
+export default Student;
