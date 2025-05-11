@@ -43,17 +43,19 @@ export const useQuizStore = create<QuizStore>()(
       createQuiz: async (topic, difficulty, questionCount) => {
         set({ isLoading: true, error: null });
         try {
+          console.log('Making OpenAI request for quiz on topic:', topic);
           const response = await openai.chat.completions.create({
             model: "gpt-4o",
             messages: [
               {
                 role: "system",
                 content: `Create a quiz about ${topic} with ${questionCount} questions at ${difficulty} difficulty level. 
-                Format the response as a JSON array of questions, where each question has:
+                Format the response as a JSON object with a 'questions' array, where each question has:
                 - text: the question text
                 - options: array of 4 possible answers
                 - correctAnswer: the correct answer (must be one of the options)
-                Make sure questions are appropriate for the difficulty level.`
+                Make sure questions are appropriate for the difficulty level.
+                Use the following format: {"questions": [{question objects}]}`
               }
             ],
             response_format: { type: "json_object" }
@@ -63,7 +65,19 @@ export const useQuizStore = create<QuizStore>()(
             throw new Error('No response from AI');
           }
 
-          const questions = JSON.parse(response.choices[0].message.content).questions.map((q: any) => ({
+          console.log('Raw response content:', response.choices[0].message.content);
+          const content = JSON.parse(response.choices[0].message.content);
+          console.log('Parsed content:', content);
+          
+          // Try to handle different possible response structures
+          const questionsArray = content.questions || content.quiz || [];
+          console.log('Questions array:', questionsArray);
+          
+          if (!questionsArray || !Array.isArray(questionsArray) || questionsArray.length === 0) {
+            throw new Error('Invalid quiz format received from AI');
+          }
+
+          const questions = questionsArray.map((q: any) => ({
             id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
             text: q.text,
             options: q.options,
@@ -77,15 +91,20 @@ export const useQuizStore = create<QuizStore>()(
             questions,
             createdAt: new Date()
           };
+          console.log('Created new quiz:', newQuiz);
 
-          set(state => ({
-            quizzes: [...state.quizzes, newQuiz],
-            currentQuiz: newQuiz,
-            isLoading: false
-          }));
+          set(state => {
+            const updatedState = {
+              quizzes: [...state.quizzes, newQuiz],
+              currentQuiz: newQuiz,
+              isLoading: false
+            };
+            console.log('Updating state with new quiz');
+            return updatedState;
+          });
         } catch (error) {
           console.error('Error creating quiz:', error);
-          set({ error: 'Failed to create quiz', isLoading: false });
+          set({ error: 'Failed to create quiz: ' + (error instanceof Error ? error.message : 'Unknown error'), isLoading: false });
         }
       },
 
